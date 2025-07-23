@@ -1,0 +1,6 @@
+# dune init project pc_city
+# OCAMLPARAM: unset
+# Shared cache: enabled-except-user-rules
+# Shared cache location: /home/ubuntu/.cache/dune/db
+# Workspace root: /home/ubuntu/PC_city/pc_city
+# Auto-detected concurrency: 2

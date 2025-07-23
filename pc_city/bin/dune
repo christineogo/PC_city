@@ -1,0 +1,4 @@
+(executable
+ (public_name pc_city)
+ (name main)
+ (libraries pc_city))
