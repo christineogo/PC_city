@@ -1,0 +1,8 @@
+lib: [
+  "_build/install/default/lib/new_common/META"
+  "_build/install/default/lib/new_common/dune-package"
+  "_build/install/default/lib/new_common/opam"
+]
+bin: [
+  "_build/install/default/bin/new_common"
+]
