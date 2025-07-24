@@ -1,0 +1,1 @@
+val component : Virtual_dom.Vdom.Node.t Bonsai.Computation.t
