@@ -1,0 +1,12 @@
+open! Core
+
+module T = struct
+  type t = Police | Electricity | School | Fire | House
+  [@@deriving sexp, equal, compare, bin_io, enumerate]
+end
+
+include T
+include Comparable.Make_binable (T)
+
+let of_string = Fn.compose t_of_sexp Sexp.of_string
+let to_string = Fn.compose Sexp.to_string_hum sexp_of_t
