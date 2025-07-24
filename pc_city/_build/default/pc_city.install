@@ -1,8 +1,0 @@
-lib: [
-  "_build/install/default/lib/pc_city/META"
-  "_build/install/default/lib/pc_city/dune-package"
-  "_build/install/default/lib/pc_city/opam"
-]
-bin: [
-  "_build/install/default/bin/pc_city"
-]
