@@ -33,6 +33,7 @@ let component =
       ~attrs:[Attr.on_click new_game_on_click]
       [Node.text "Start Game"]
   in
-  View.vbox [title; button; sidebar; grid]
+  View.vbox [title; button; View.hbox [sidebar; grid] ]
+  
 
 let () = Bonsai_web.Start.start component
