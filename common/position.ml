@@ -24,3 +24,5 @@ let all_offsets =
   [
     up; up >> right; right; right >> down; down; down >> left; left; left >> up;
   ]
+
+let create ~row ~col = { row; column = col }

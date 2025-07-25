@@ -1,19 +1,3 @@
-(* open! Core
-open! Bonsai_web
-open! Bonsai.Let_syntax
-(* open! Game_strategies_common_lib *)
-
-
-let component = 
-  let%sub title = Bonsai.const (Vdom.Node.text "PC City") in
-  let%sub grid = Grid.component in 
-  let%sub button = Bonsai.const (Vdom.Node.button [Vdom.Node.text "Start Game"]) in 
-
-  let%arr title = title and grid = grid and button = button in 
-  View.vbox [title; button; grid] 
-
-let () = Bonsai_web.Start.start component *)
-
 open! Core
 open! Bonsai_web
 open! Bonsai.Let_syntax
@@ -22,7 +6,7 @@ open! Js_of_ocaml
 open Game_strategies_common_lib
 
 let component = 
-  let%sub _, set_game =
+  let%sub game, set_game =
     Bonsai.state
       (module struct
         type t = Game.t [@@deriving sexp, equal]
@@ -31,9 +15,10 @@ let component =
   in
 
   let%sub title = Bonsai.const (Node.text "PC City") in
-  let%sub grid = Grid.component in
 
-  (* button must be moved into let%arr to access set_game *)
+  (* Pass game and set_game into Grid.component *)
+  let%sub grid = Grid.component ~game ~set_game in
+
   let%arr title = title
   and grid = grid
   and set_game = set_game
