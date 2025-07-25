@@ -6,6 +6,10 @@
     cursor: pointer;
 }
 
+.grid-cell.selected {
+    outline: 2px solid red;
+}
+
 .grid-table {
     border-collapse: collapse;
     margin: 20px;
