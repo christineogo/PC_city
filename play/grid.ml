@@ -51,7 +51,7 @@ open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
 open Game_strategies_common_lib
 
-let grid_size = 10
+let grid_size = 20
 
 let component ~game ~set_game = 
   let%sub selected_cell, _ =
