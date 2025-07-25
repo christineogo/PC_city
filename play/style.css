@@ -16,13 +16,13 @@
 }
 
 .title {
+    text-align: center;
     font-family: 'Impact', 'Arial Black', sans-serif;
     font-size: 4rem;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: #f94144;
     -webkit-text-stroke: 3px #ffffff;
-    text-stroke: 3px #ffffff;
     text-shadow:
         2px 2px 0 #000000,
         4px 4px 0 rgba(0, 0, 0, 0.3);
