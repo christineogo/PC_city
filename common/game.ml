@@ -1,5 +1,5 @@
 open! Core
-open! Async
+(* open! Async *)
 
 type t = {
   game_stage : Stage.t;
@@ -14,7 +14,7 @@ type t = {
   happy_rate : int;
   current_day : int;
 }
-[@@deriving sexp_of, equal]
+[@@deriving sexp, equal]
 
 let new_game () =
   {

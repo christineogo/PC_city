@@ -13,7 +13,7 @@ type t = {
   happy_rate : int;
   current_day : int;
 }
-[@@deriving sexp_of, equal]
+[@@deriving sexp, equal]
 
 val new_game : unit -> t
 

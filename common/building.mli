@@ -1,7 +1,7 @@
 open! Core
 
 type t = Police | Electricity | School | Fire | House
-[@@deriving sexp_of, equal, bin_io, enumerate]
+[@@deriving sexp, equal, bin_io, enumerate]
 
 include Comparable.S_binable with type t := t
 
