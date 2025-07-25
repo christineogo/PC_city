@@ -31,7 +31,8 @@ let new_game () =
     current_day = 0;
   }
 
-
+let print_game game = 
+  print_s[%message (game:t)]
 (* placing structures *)
 let get_building t ~position = Map.find t.board position
 

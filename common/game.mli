@@ -36,3 +36,5 @@ val tick : t -> (t, string) result
 
 val implement_policy : t -> Policy.t -> (t, string) result
 val remove_policy : t -> Policy.t -> (t, string) result
+
+val print_game: t -> unit
