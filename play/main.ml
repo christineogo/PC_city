@@ -14,14 +14,14 @@ let component =
       ~default_model:(Game.new_game ())
   in
 
-  let%sub title = Bonsai.const (Node.text "PC City") in
-
-  (* Pass game and set_game into Grid.component *)
+  let%sub title = Bonsai.const (Node.h1 ~attrs:[Attr.class_ "title"] [Node.text "PC City"]) in
   let%sub grid = Grid.component ~game ~set_game in
+  let%sub sidebar = City_planner.component in
+
 
   let%arr title = title
-  and grid = grid
-  and set_game = set_game
+  and grid = grid and sidebar = sidebar
+  and set_game = set_game 
   in
   let new_game_on_click (_ev : Dom_html.mouseEvent Js.t) : unit Ui_effect.t =
     let new_game = Game.new_game () in
@@ -33,6 +33,6 @@ let component =
       ~attrs:[Attr.on_click new_game_on_click]
       [Node.text "Start Game"]
   in
-  View.vbox [title; button; grid]
+  View.vbox [title; button; sidebar; grid]
 
 let () = Bonsai_web.Start.start component
