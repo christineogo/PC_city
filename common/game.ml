@@ -14,7 +14,7 @@ type t = {
   happy_rate : int;
   current_day : int;
 }
-[@@deriving sexp_of]
+[@@deriving sexp_of, equal]
 
 let new_game () =
   {
