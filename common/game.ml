@@ -49,6 +49,7 @@ let place_building t ~position ~building =
   if dup_mandatory t ~building then
     Error "You cannot place multiple mandatory buildings"
   else if Position.in_bounds position then
+    if Map.mem t.board position then Error "already a building here" else
     let board = Map.set t.board ~key:position ~data:building in
     let building_counts =
       Map.update t.building_counts building ~f:(function
@@ -210,3 +211,4 @@ let add_mandatory ~position game =
   if not (List.is_empty next_mandatory) then 
     Result.ok_or_failwith (place_building game ~position ~building: (List.hd_exn next_mandatory))
 else end_tutorial game
+

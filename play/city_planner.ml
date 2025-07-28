@@ -7,7 +7,7 @@ open! Game_strategies_common_lib
 let planner_items =
   [
     ("#888888", "University");
-    ("#f4a261", "K-12 School");
+    ("#f4a261", "School");
     ("#a8d5a2", "Grocery");
     ("#e76f51", "Retail");
     ("#b38728", "House");
@@ -36,18 +36,21 @@ let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.
   and set_game = set_game
   in
 
-  let _on_click  ~building=
+  let on_click  ~building=
   match selected_cell with
     |Some pos ->
-      let row, col = pos in
-    let position = Position.create ~row ~col in
-    let new_game = Game.tutorial_placement game ~position:position ~building in
+      (let row, col = pos in
+    let new_position = Position.create ~row ~col in
+    match game.game_stage with
+    |Stage.Tutorial -> let new_game = Game.tutorial_placement game ~position:new_position ~building in
     if Result.is_ok new_game then print_s[%message (Result.ok_or_failwith new_game : Game.t)];
     set_game (Result.ok_or_failwith new_game)
-    |None -> ()
+    |_ -> let new_game = Game.place_building game ~position:new_position ~building in
+    if Result.is_ok new_game then print_s[%message (Result.ok_or_failwith new_game : Game.t)];
+    set_game (Result.ok_or_failwith new_game))
+    |None -> set_game game
   in
 
-  Bonsai.const (
     Node.div ~attrs:[ Attr.class_ "sidebar" ] [
 
       (* Header *)
@@ -62,7 +65,7 @@ let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.
                [ Node.text "" ];
              Node.span ~attrs:[ Attr.class_ "legend-label" ] [ Node.text label ];
              Node.button
-               ~attrs:[ Attr.class_ "legend-buy"; Attr.on_click (fun _ -> Bonsai_web.Effect.Ignore) ]
+               ~attrs:[ Attr.class_ "legend-buy"; Attr.on_click (fun _ -> on_click ~building:(Building.of_string label)) ]
                [ Node.text "Buy" ];
            ]
          ));
@@ -107,4 +110,5 @@ let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.
              ]))
       ];
     ]
-  )
+
+

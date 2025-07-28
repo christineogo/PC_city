@@ -1,6 +1,6 @@
 open! Core
 
-type t = Police | Electricity | School | Fire | House
+type t = Police | Electricity | Fire | House | University | School | Grocery | Retail | Apartment | Greenspace
 [@@deriving sexp, equal, bin_io, enumerate]
 
 include Comparable.S_binable with type t := t
