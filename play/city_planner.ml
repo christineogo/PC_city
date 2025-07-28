@@ -4,16 +4,6 @@ open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
 open! Game_strategies_common_lib
 
-let planner_items =
-  [
-    ("#888888", "University");
-    ("#f4a261", "School");
-    ("#a8d5a2", "Grocery");
-    ("#e76f51", "Retail");
-    ("#b38728", "House");
-    ("#8c5a2f", "Apartment");
-    ("#2a5d00", "Greenspace");
-  ]
 
 let policies =
   [ "Clean Energy"
@@ -31,10 +21,30 @@ let mandatory_services =
   ]
 
 let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.t) Value.t) ~(selected_cell:(int * int) option Value.t) =
+
   let%arr selected_cell = selected_cell
   and game = game
   and set_game = set_game
   in
+
+
+
+  let get_building_counts building_type =
+     match Map.find game.building_counts (Building.of_string building_type) with 
+     | Some count -> count 
+     | None -> 0 
+  in 
+  let planner_items =
+  [
+    ("#888888", get_building_counts "University", "University");
+    ("#f4a261", get_building_counts "School",  "School");
+    ("#a8d5a2", get_building_counts "Grocery", "Grocery");
+    ("#e76f51", get_building_counts "Retail", "Retail");
+    ("#b38728", get_building_counts "House", "House");
+    ("#8c5a2f", get_building_counts "Apartment", "Apartment");
+    ("#2a5d00", get_building_counts "Greenspace", "Greenspace");
+  ] in 
+
 
   let on_click  ~building=
   match selected_cell with
@@ -58,11 +68,12 @@ let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.
 
       (* Legend/Buy list *)
       Node.div ~attrs:[ Attr.class_ "legend" ]
-        (List.map planner_items ~f:(fun (color, label) ->
+        (List.map planner_items ~f:(fun (color, count, label) ->
            Node.div ~attrs:[ Attr.class_ "legend-item" ] [
              Node.span
                ~attrs:[ Attr.class_ "legend-label"; Attr.create "style" ("display:inline-block;width:16px;height:16px;background:" ^ color ^ ";margin-right:8px;vertical-align:middle;") ]
                [ Node.text "" ];
+              Node.span ~attrs:[ Attr.class_ "legend-label" ] [ Node.text  (string_of_int count)];
              Node.span ~attrs:[ Attr.class_ "legend-label" ] [ Node.text label ];
              Node.button
                ~attrs:[ Attr.class_ "legend-buy"; Attr.on_click (fun _ -> on_click ~building:(Building.of_string label)) ]
