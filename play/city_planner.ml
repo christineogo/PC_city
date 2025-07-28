@@ -2,6 +2,7 @@ open! Core
 open! Bonsai_web
 open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
+open! Game_strategies_common_lib
 
 let planner_items =
   [
@@ -29,7 +30,23 @@ let mandatory_services =
     ("#e63946", "Fire Station", "-75/day")
   ]
 
-let component : Node.t Bonsai.Computation.t =
+let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.t) Value.t) ~(selected_cell:(int * int) option Value.t) =
+  let%arr selected_cell = selected_cell
+  and game = game
+  and set_game = set_game
+  in
+
+  let _on_click  ~building=
+  match selected_cell with
+    |Some pos ->
+      let row, col = pos in
+    let position = Position.create ~row ~col in
+    let new_game = Game.tutorial_placement game ~position:position ~building in
+    if Result.is_ok new_game then print_s[%message (Result.ok_or_failwith new_game : Game.t)];
+    set_game (Result.ok_or_failwith new_game)
+    |None -> ()
+  in
+
   Bonsai.const (
     Node.div ~attrs:[ Attr.class_ "sidebar" ] [
 

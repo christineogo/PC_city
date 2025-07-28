@@ -107,17 +107,17 @@ open! Core
 open! Bonsai_web
 open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
-open Game_strategies_common_lib
+open! Game_strategies_common_lib
 
 let grid_size = 20
 
-let component ~game ~set_game = 
-  let%sub selected_cell, set_selected_cell =
+let component ~game ~set_game ~selected_cell ~set_selected_cell= 
+  (* let%sub selected_cell, set_selected_cell =
     Bonsai.state_opt
       (module struct
         type t = int * int [@@deriving sexp, equal]
       end)
-  in
+  in *)
 
   let%arr selected_cell = selected_cell
   and set_selected_cell = set_selected_cell

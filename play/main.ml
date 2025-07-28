@@ -14,13 +14,21 @@ let component =
       ~default_model:(Game.new_game ())
   in
 
+  let%sub selected_cell, set_selected_cell =
+    Bonsai.state_opt
+      (module struct
+        type t = int * int [@@deriving sexp, equal]
+      end)
+  in
+
   let%sub title = Bonsai.const (Node.h1 ~attrs:[Attr.class_ "title"] [Node.text "PC City"]) in
-  let%sub grid = Grid.component ~game ~set_game in
-  let%sub sidebar = City_planner.component in
+  let%sub grid = Grid.component ~game ~set_game ~selected_cell ~set_selected_cell in
+  (* let%sub sidebar = City_planner.component ~game ~set_game ~selected_cell in *)
 
 
   let%arr title = title
-  and grid = grid and sidebar = sidebar
+  and grid = grid 
+  (* and sidebar = sidebar *)
   and set_game = set_game 
   in
   let new_game_on_click (_ev : Dom_html.mouseEvent Js.t) : unit Ui_effect.t =
@@ -33,7 +41,9 @@ let component =
       ~attrs:[Attr.on_click new_game_on_click]
       [Node.text "Start Game"]
   in
-  View.vbox [title; button; View.hbox [sidebar; grid] ]
+  View.vbox [title; button; View.hbox [
+    (* sidebar;  *)
+  grid] ]
   
 
 let () = Bonsai_web.Start.start component
