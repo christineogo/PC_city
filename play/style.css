@@ -47,13 +47,16 @@
 
 .legend,
 .policies,
-.mandatory {
+.mandatory,
+.city-stats {
     margin-top: 1rem;
 }
 
 .legend-item,
 .policy-item,
-.mandatory-item {
+.mandatory-item,
+.stats-item,
+.public-item {
     display: flex;
     align-items: center;
     margin-bottom: 0.5rem;
@@ -61,7 +64,8 @@
 
 .legend-label,
 .policy-label,
-.mandatory-label {
+.mandatory-label,
+.stats-label .public-label {
     flex: 1;
 }
 
@@ -114,4 +118,9 @@
     height: 16px;
     margin-right: 8px;
     vertical-align: middle;
+}
+
+.public-opinion {
+    height: 200px;
+    overflow-y: auto;
 }
