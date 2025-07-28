@@ -5,6 +5,40 @@ open! Virtual_dom.Vdom
 open! Js_of_ocaml
 open Game_strategies_common_lib
 
+
+module City_results = struct
+ let default_value = 0  (*to maintain variable state for now, christine change this when backend is connected*)
+let stats_items = [
+  ("Population: ", default_value);
+  ("Money: ", default_value);
+  ("Happiness: ", default_value); 
+  ("Day: ", default_value)
+]
+
+let component : Node.t Bonsai.Computation.t =
+  Bonsai.const (
+
+  (*City stats*)
+    Node.div ~attrs:[Attr.class_ "section-box"]
+    [
+      Node.h3 ~attrs:[Attr.class_ "section-title"] [Node.text "City Stats"];
+      Node.div ~attrs:[Attr.class_ "city-stats"]
+      (List.map stats_items ~f:(fun (label, value)-> 
+        Node.div ~attrs: [Attr.class_ "stats-item"][
+          Node.span ~attrs: [Attr.class_ "stats-label"] [Node.text label]; 
+          Node.span ~attrs: [Attr.class_ "legend-label"] [Node.text (string_of_int value)]
+        ]))
+    ]
+
+    (*Public Opinion*)
+    
+    (* Node.div ~attrs: [Attr.class_ "section-box"]
+    [
+      Node.h3 ~attrs:[Attr.class_ "section-title"] [Node.text "Public Opinion"]
+    ] *)
+  ) 
+
+end 
 let component = 
   let%sub game, set_game =
     Bonsai.state
@@ -22,13 +56,13 @@ let component =
   in
 
   let%sub title = Bonsai.const (Node.h1 ~attrs:[Attr.class_ "title"] [Node.text "PC City"]) in
-  let%sub grid = Grid.component ~game ~set_game ~selected_cell ~set_selected_cell in
-  (* let%sub sidebar = City_planner.component ~game ~set_game ~selected_cell in *)
+  let%sub grid = Grid.component ~game ~set_game ~selected_cell ~set_selected_cell in 
+  let%sub right_sidebar = City_results.component in 
 
 
   let%arr title = title
-  and grid = grid 
-  (* and sidebar = sidebar *)
+  and grid = grid and 
+  right_sidebar = right_sidebar
   and set_game = set_game 
   in
   let new_game_on_click (_ev : Dom_html.mouseEvent Js.t) : unit Ui_effect.t =
@@ -41,9 +75,7 @@ let component =
       ~attrs:[Attr.on_click new_game_on_click]
       [Node.text "Start Game"]
   in
-  View.vbox [title; button; View.hbox [
-    (* sidebar;  *)
-  grid] ]
+  View.vbox [title; button; View.hbox [grid ;  right_sidebar ] ]
   
 
 let () = Bonsai_web.Start.start component
