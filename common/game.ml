@@ -111,32 +111,36 @@ let policy_effect ~policy ~game =
       update_happy_rate game (Int.min 100 game.happy_rate + 10)
   | Policy.Disable_Mandatory ->
       update_happy_rate game (Int.min 100 game.happy_rate + 10)
+  | _ -> game
 
 
 let fire_event game =
   print_endline "A fire has hit your town!";
-  {
+  game
+  (* {
     game with
     population = Float.to_int (Int.to_float game.population *. 0.85);
     money = Float.to_int (Int.to_float game.money *. 0.85);
     happiness = Int.max 0 game.happiness - 10;
-  }
+  } *)
 
 let protest_event game =
   print_endline "Your residents are protesting!";
-  {
+  game
+  (* {
     game with
     population = game.population - 10;
     happiness = Int.max 0 game.happiness - 5;
-  }
+  } *)
 
 let robbery_event game =
   print_endline "Robberies have struck your town!";
-  {
+  game
+  (* {
     game with
     money = Float.to_int (Int.to_float game.money *. 0.75);
     happiness = Int.max 0 game.happiness - 5;
-  }
+  } *)
 
 let get_robbery_risk game =
   let robbery_risk = 1 in
@@ -155,7 +159,7 @@ let get_fire_risk game =
   else fire_risk
 
 let get_protest_risk game =
-  let protest_risk = 2 in
+  let protest_risk = 1 in
   if
     List.exists game.implemented_policies ~f:(fun policy ->
         Policy.equal policy Policy.Clean_Energy)
@@ -179,14 +183,15 @@ let daily_events game =
   let robbery_risk = get_robbery_risk game in
   let fire_risk = get_fire_risk game in
   let protest_risk = get_protest_risk game in
-  if robbery_risk * Random.int 10 > 9 then Some Event.Robbery
-  else if fire_risk * Random.int 10 > 9 then Some Event.Fire
-  else if protest_risk * Random.int 10 > 9 then Some Event.Protest
+  if (robbery_risk * Random.int 100) > 99 then Some Event.Robbery
+  else if (fire_risk * Random.int 100) > 99 then Some Event.Fire
+  else if (protest_risk * Random.int 100) > 99 then Some Event.Protest
   else None
 
 
 (* time passing *)
 let start_day game =
+  print_endline("possible event");
   match daily_events game with
   | Some Event.Robbery -> robbery_event game
   | Some Event.Fire -> fire_event game
