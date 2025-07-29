@@ -39,11 +39,11 @@ let component =
     let%arr game = game and
     set_game = set_game in (
       (* print_endline("new day"); *)
-      set_game (Result.ok_or_failwith (Game.tick game))) 
-  in
+      set_game (Game.start_day (Result.ok_or_failwith (Game.tick game)))) 
+  (* in
   let%sub _ =
     let%arr game = game in
-    Game.tick game
+    Game.tick game *)
   in
   let%sub () =
     Bonsai.Clock.every
@@ -53,6 +53,25 @@ let component =
       tick_handler
 
  in
+
+ (* let%sub event_handler = 
+    let%arr game = game and
+    set_game = set_game in (
+      print_endline("trying to do an event");
+      set_game (Game.start_day game)) 
+  in
+  let%sub _ =
+    let%arr game = game in
+    Game.start_day game
+  in
+  let%sub () =
+    Bonsai.Clock.every
+      ~trigger_on_activate: true
+      ~when_to_start_next_effect: `Every_multiple_of_period_non_blocking
+      (Time_ns.Span.of_sec 20.0)
+      event_handler
+
+ in *)
 
 
   let%arr title = title
