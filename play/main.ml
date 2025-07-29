@@ -35,9 +35,11 @@ let component =
   let%sub left_sidebar = City_planner.component ~game ~set_game ~selected_cell ~set_error_message in 
 
 
-  (* let%sub tick_handler = 
+  let%sub tick_handler = 
     let%arr game = game and
-    set_game = set_game in (set_game (Result.ok_or_failwith (Game.tick game))) 
+    set_game = set_game in (
+      (* print_endline("new day"); *)
+      set_game (Result.ok_or_failwith (Game.tick game))) 
   in
   let%sub _ =
     let%arr game = game in
@@ -50,7 +52,7 @@ let component =
       (Time_ns.Span.of_sec 10.0)
       tick_handler
 
- in *)
+ in
 
 
   let%arr title = title

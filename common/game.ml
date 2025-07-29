@@ -194,15 +194,18 @@ let start_day game =
   | None -> game
 
 let tick game =
+  print_endline("new day started");
+  print_s [%message (game.current_day:int)];
   let updated_game = update_stats game in
   let new_day =
     { updated_game with current_day = updated_game.current_day + 1 }
   in
-  if new_day.happiness <= 0 then Error "Game over! Happiness has reached 0"
-  else if new_day.money <= 0 then Error "Game over! Money has reached 0"
-  else if new_day.population <= 0 then
+  if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"
+  else if new_day.money < 0 then Error "Game over! Money has reached 0"
+  else if new_day.population < 0 then
     Error "Game over! Population has reached 0"
-  else Ok new_day
+  else 
+    Ok new_day
 
 let add_mandatory ~position game = 
   let mandatory_buildings =
