@@ -1,5 +1,4 @@
 open! Core
-(* open! Async *)
 
 type t = {
   game_stage : Stage.t;
@@ -16,6 +15,7 @@ type t = {
   tax_rate : float;
 }
 [@@deriving sexp, equal]
+
 
 let new_game () =
   {
@@ -93,6 +93,9 @@ let update_population_rate (g : t) (new_rate : int) : t =
 
 let update_money_rate (g : t) (new_rate : int) : t =
   { g with money_rate = new_rate }
+
+
+
 
 let end_tutorial (g : t) = { g with game_stage = Stage.Game_continues }
 let game_over (g : t) = { g with game_stage = Stage.Game_over }
@@ -190,6 +193,23 @@ let daily_events game =
   else if (protest_risk * Random.int 100) > 99 then Some Event.Protest
   else None
 
+  (*
+let get_public_opinion_categories (g : t) : Public_feedback.feedback_category list =
+  let cats = ref [] in
+  if List.exists g.implemented_policies ~f:(Policy.equal Policy.Disable_Mandatory) then
+    cats := Defund_mandatory :: !cats;
+  
+let random_element lst =
+  match lst with
+  | [] -> None
+  | _ -> Some (List.nth_exn lst (Random.int (List.length lst)))
+
+let get_public_opinion_messages (g : t) : string list =
+  get_public_opinion_categories g
+  |> List.filter_map ~f:(fun cat ->
+      Public_feedback.get_feedback_for_category cat |> random_element
+    )
+*)
 
 (* time passing *)
 let start_day game =
