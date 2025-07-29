@@ -20,11 +20,12 @@ let mandatory_services =
     ("#e63946", "Fire Station", "-75/day")
   ]
 
-let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.t) Value.t) ~(selected_cell:(int * int) option Value.t) =
+let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.t) Value.t) ~(selected_cell:(int * int) option Value.t) ~set_error_message=
 
   let%arr selected_cell = selected_cell
   and game = game
   and set_game = set_game
+  and set_error_message = set_error_message
   in
 
 
@@ -52,12 +53,26 @@ let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.
       (let row, col = pos in
     let new_position = Position.create ~row ~col in
     match game.game_stage with
-    |Stage.Tutorial -> let new_game = Game.tutorial_placement game ~position:new_position ~building in
-    if Result.is_ok new_game then print_s[%message (Result.ok_or_failwith new_game : Game.t)];
-    set_game (Result.ok_or_failwith new_game)
-    |_ -> let new_game = Game.place_building game ~position:new_position ~building in
-    if Result.is_ok new_game then print_s[%message (Result.ok_or_failwith new_game : Game.t)];
-    set_game (Result.ok_or_failwith new_game))
+    |Stage.Tutorial -> (let new_game = Game.tutorial_placement game ~position:new_position ~building in
+    match new_game with
+    | Ok ok_game -> print_s[%message (ok_game : Game.t)];
+    set_game (ok_game)
+    | Error message -> print_endline(message); set_error_message (Some message)
+
+    (* if Result.is_ok new_game then (print_s[%message (Result.ok_or_failwith new_game : Game.t)];
+    set_game (Result.ok_or_failwith new_game)) else (print_s[%message (Result.ok_or_failwith new_game : Game.t)];
+    set_game (Result.ok_or_failwith new_game)) *)
+    
+    ) 
+    |_ -> (let new_game = Game.place_building game ~position:new_position ~building in
+    match new_game with
+    | Ok ok_game -> print_s[%message (ok_game : Game.t)];
+    set_game (ok_game)
+    | Error message -> print_endline(message); set_error_message (Some message))
+      )
+
+    (* if Result.is_ok new_game then print_s[%message (Result.ok_or_failwith new_game : Game.t)];
+    set_game (Result.ok_or_failwith new_game)) *)
     |None -> set_game game
   in
 

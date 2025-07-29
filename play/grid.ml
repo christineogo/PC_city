@@ -6,7 +6,7 @@ open! Game_strategies_common_lib
 
 let grid_size = 20
 
-let component ~game ~set_game ~selected_cell ~set_selected_cell= 
+let component ~game ~set_game ~selected_cell ~set_selected_cell ~set_error_message= 
   (* let%sub selected_cell, set_selected_cell =
     Bonsai.state_opt
       (module struct
@@ -18,6 +18,7 @@ let component ~game ~set_game ~selected_cell ~set_selected_cell=
   and set_selected_cell = set_selected_cell
   and game = game
   and set_game = set_game
+  and set_error_message = set_error_message
   in
 
   let on_click (row, col) =
@@ -26,7 +27,13 @@ let component ~game ~set_game ~selected_cell ~set_selected_cell=
     let%bind.Ui_effect () = set_selected_cell (Some (row, col)) in
     let new_game = Game.add_mandatory ~position game in
     match game.game_stage with
-    |Stage.Tutorial -> print_s[%message (new_game : Game.t)]; set_game new_game
+    |Stage.Tutorial -> (
+      (* print_s[%message (new_game : Game.t)]; set_game new_game *)
+      match new_game with
+    | Ok ok_game -> print_s[%message (ok_game : Game.t)];
+    set_game (ok_game)
+    | Error message -> print_endline(message); set_error_message (Some message)
+      )
     |_ -> set_game game
   in
 

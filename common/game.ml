@@ -209,6 +209,6 @@ let add_mandatory ~position game =
     [ Building.Electricity; Building.Fire; Building.Police ] in
   let next_mandatory = List.filter mandatory_buildings ~f:(fun item -> not (dup_mandatory game ~building:item)) in
   if not (List.is_empty next_mandatory) then 
-    Result.ok_or_failwith (place_building game ~position ~building: (List.hd_exn next_mandatory))
-else end_tutorial game
+    place_building game ~position ~building: (List.hd_exn next_mandatory)
+else Ok (end_tutorial game)
 
