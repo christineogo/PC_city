@@ -13,6 +13,7 @@ type t = {
   money_rate : int;
   happy_rate : int;
   current_day : int;
+  tax_rate : float;
 }
 [@@deriving sexp, equal]
 
@@ -29,6 +30,7 @@ let new_game () =
     money_rate = 0;
     happy_rate = 0;
     current_day = 0;
+    tax_rate = 0.0;
   }
 
 let print_game game = 
