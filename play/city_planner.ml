@@ -56,6 +56,7 @@ let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.
     |Stage.Tutorial -> (let new_game = Game.tutorial_placement game ~position:new_position ~building in
     match new_game with
     | Ok ok_game -> print_s[%message (ok_game : Game.t)];
+    (*Grid.change_color ~building_type: building ~row:row ~col:col ; *)
     set_game (ok_game)
     | Error message -> print_endline(message); set_error_message (Some message)
 
@@ -67,13 +68,16 @@ let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.
     |_ -> (let new_game = Game.place_building game ~position:new_position ~building in
     match new_game with
     | Ok ok_game -> print_s[%message (ok_game : Game.t)];
+    (*Grid.change_color ~building_type:building ~row:row ~col:col ; *) 
     set_game (ok_game)
     | Error message -> print_endline(message); set_error_message (Some message))
       )
 
+
     (* if Result.is_ok new_game then print_s[%message (Result.ok_or_failwith new_game : Game.t)];
     set_game (Result.ok_or_failwith new_game)) *)
     |None -> set_game game
+
   in
 
     Node.div ~attrs:[ Attr.class_ "sidebar" ] [

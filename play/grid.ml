@@ -4,7 +4,7 @@ open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
 open! Game_strategies_common_lib
 
-let grid_size = 20
+let grid_size = 15
 
 let component ~game ~set_game ~selected_cell ~set_selected_cell ~set_error_message= 
   (* let%sub selected_cell, set_selected_cell =
@@ -42,9 +42,18 @@ let component ~game ~set_game ~selected_cell ~set_selected_cell ~set_error_messa
     let classes =
       if is_selected then [ "grid-cell"; "selected" ] else [ "grid-cell" ]
     in
+
+    let position = Position.create ~row ~col in
+    let building_opt = Game.get_building game ~position in
+
+    let color = match building_opt with
+    | Some building -> Building.get_color building
+    | None -> "#D3D3D3" 
+  in 
     Node.td
       ~attrs:[
         Attr.classes classes;
+        Attr.create "style" ("background: " ^ color);
         Attr.on_click (fun _ -> on_click (row, col))
       ]
       []
@@ -60,4 +69,3 @@ let component ~game ~set_game ~selected_cell ~set_selected_cell ~set_error_messa
   Node.table
     ~attrs:[Attr.class_ "grid-table"]
     (List.init grid_size ~f:(fun row_index -> row ~row_index))
-
