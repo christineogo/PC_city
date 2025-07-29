@@ -34,6 +34,25 @@ let component =
   let%sub right_sidebar = City_result.component in 
   let%sub left_sidebar = City_planner.component ~game ~set_game ~selected_cell ~set_error_message in 
 
+
+  let%sub tick_handler = 
+    let%arr game = game and
+    set_game = set_game in (set_game (Result.ok_or_failwith (Game.tick game))) 
+  in
+  let%sub _ =
+    let%arr game = game in
+    Game.tick game
+  in
+  let%sub () =
+    Bonsai.Clock.every
+      ~trigger_on_activate: true
+      ~when_to_start_next_effect: `Every_multiple_of_period_non_blocking
+      (Time_ns.Span.of_sec 10.0)
+      tick_handler
+
+ in
+
+
   let%arr title = title
   and grid = grid and 
   right_sidebar = right_sidebar
