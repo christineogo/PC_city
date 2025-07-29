@@ -31,7 +31,7 @@ let component =
 
   let%sub title = Bonsai.const (Node.h1 ~attrs:[Attr.class_ "title"] [Node.text "PC City"]) in
   let%sub grid = Grid.component ~game ~set_game ~selected_cell ~set_selected_cell ~set_error_message in 
-  let%sub right_sidebar = City_result.component in 
+  let%sub right_sidebar = City_result.component ~game in 
   let%sub left_sidebar = City_planner.component ~game ~set_game ~selected_cell ~set_error_message in 
 
 

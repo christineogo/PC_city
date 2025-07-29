@@ -77,13 +77,7 @@ let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.
     (* if Result.is_ok new_game then print_s[%message (Result.ok_or_failwith new_game : Game.t)];
     set_game (Result.ok_or_failwith new_game)) *)
     |None -> set_game game
-    in
-      let enact_policy policy=
-      let new_game  =  Game.implement_policy game policy in
-      match new_game with
-    | Ok ok_game -> print_s[%message (ok_game : Game.t)]; print_endline(Policy.to_string policy);
-    set_game (ok_game)
-    | Error message -> print_endline(message); set_error_message (Some message)
+
   in
 
     Node.div ~attrs:[ Attr.class_ "sidebar" ] [
@@ -114,7 +108,7 @@ let component ~(game: Game.t Value.t) ~(set_game: (Game.t -> unit Bonsai.Effect.
              Node.div ~attrs:[ Attr.class_ "policy-item" ] [
                Node.span ~attrs:[ Attr.class_ "policy-label" ] [ Node.text p ];
                Node.button
-                 ~attrs:[ Attr.class_ "policy-enact"; Attr.on_click (fun _ -> enact_policy (Policy.of_string p)) ]
+                 ~attrs:[ Attr.class_ "policy-enact"; Attr.on_click (fun _ -> Bonsai_web.Effect.Ignore) ]
                  [ Node.text "Enact" ];
              ]))
       ];

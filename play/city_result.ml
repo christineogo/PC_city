@@ -2,16 +2,8 @@ open! Core
 open! Bonsai_web
 open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
+open! Game_strategies_common_lib 
 
-
-let default_value = 0 
-let happiness = 20
-(*to maintain variable state for now, christine change this when backend is connected*)
-let stats_items = [
- ("Population: ", default_value);
- ("Money: ", default_value);
- ("Day: ", default_value)
-]
 
 
 (*switch this list with the list in the backend *)
@@ -24,18 +16,14 @@ let opinion_messages = [
 ]
 
 
-
-
-
-
-
-
-let component : Node.t Bonsai.Computation.t =
-
-
-
-
- Bonsai.const (
+let component ~(game: Game.t Value.t)  =
+let%arr game = game in 
+let stats_items = [
+ ("Population: ", game.population);
+ ("Money: ", game.money);
+ ("Day: ", game.current_day)
+] in 
+ 
  let happiness_bar ~value =
  Node.div ~attrs:[Attr.class_ "happiness-bar-container"]
    [ Node.div
@@ -51,28 +39,17 @@ let component : Node.t Bonsai.Computation.t =
    [
      Node.h3 ~attrs:[Attr.class_ "section-title"] [Node.text "City Stats"];
      Node.div ~attrs:[Attr.class_ "city-stats"]
-
-
      (List.concat
      [
-    
      List.map stats_items ~f:(fun (label, value)->
        Node.div ~attrs: [Attr.class_ "stats-item"][
          Node.span ~attrs: [Attr.class_ "stats-label"] [Node.text label];
          Node.span ~attrs: [Attr.class_ "stats-label"] [Node.text (string_of_int value)]
        ])
-      
        ;
-      
-       [Node.span ~attrs:[Attr.class_ "stats-label"] [Node.text "Happiness"; (happiness_bar ~value:happiness)]
-      
+       [Node.span ~attrs:[Attr.class_ "stats-label"] [Node.text "Happiness"; (happiness_bar ~value:game.happiness)]
        ]] )
-
-
- 
    ];
-
-
   
    (*Public Opinion*)
    Node.div ~attrs: [Attr.class_ "section-box"]
@@ -88,6 +65,5 @@ let component : Node.t Bonsai.Computation.t =
    ] ;
 
 
- )
 
 
