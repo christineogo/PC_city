@@ -124,3 +124,21 @@
     height: 500px;
     overflow-y: auto;
 }
+
+.happiness-bar-container {
+    width: 80px;
+    height: 14px;
+    background: #eee;
+    border-radius: 7px;
+    overflow: hidden;
+    margin-left: 8px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.happiness-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #b9e937, #4ecb4e 85%);
+    border-radius: 7px 0 0 7px;
+    transition: width 0.4s cubic-bezier(.44, 2, .61, -0.6);
+}
