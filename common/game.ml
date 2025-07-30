@@ -27,7 +27,7 @@ let new_game () =
     money = 1000;
     happiness = 0;
     population_rate = 0;
-    money_rate = 0;
+    money_rate = 10;
     happy_rate = 0;
     current_day = 0;
     tax_rate = 0.0;
@@ -193,7 +193,7 @@ let daily_events game =
   else if (protest_risk * Random.int 100) > 99 then Some Event.Protest
   else None
  
-let get_public_opinion_categories (g : t) : Public_feedback.feedback_category list =
+(* let get_public_opinion_categories (g : t) : Public_feedback.feedback_category list =
   let cats = [] in
   match (List.exists g.implemented_policies ~f:(Policy.equal Policy.Disable_Mandatory)) with 
   |true -> List.append cats [Public_feedback.Defund_mandatory]
@@ -206,7 +206,7 @@ let _get_public_opinion_messages (g : t) : string list =
       List.random_element (Public_feedback.get_feedback_for_category cat)
     )
 
-  
+   *)
 
 (* time passing *)
 let start_day game =
