@@ -25,7 +25,7 @@ let new_game () =
     implemented_policies = [];
     population = 0;
     money = 1000;
-    happiness = 0;
+    happiness = 20;
     population_rate = 0;
     money_rate = 10;
     happy_rate = 0;
@@ -33,8 +33,88 @@ let new_game () =
     tax_rate = 0.0;
   }
 
+
+let get_money_change building= 
+  match building with
+    | Building.Police -> -10
+      (* (match game.game_stage with 
+      |Stage.Tutorial -> 0
+      |_ -> -10
+      ) *)
+    | Electricity -> -10
+      (* (match game.game_stage with 
+      |Stage.Tutorial -> 0
+      |_ -> -10
+      ) *)
+    | Fire -> -10
+      (* (match game.game_stage with 
+      |Stage.Tutorial -> 0
+      |_ -> -10
+      ) *)
+    | House -> 10
+    | University -> -50
+    | School -> -50
+    | Grocery -> 50
+    | Retail -> 20
+    | Apartment -> 50
+    | Greenspace -> 0
+    | Water -> -10
+      (* (match game.game_stage with 
+      |Stage.Tutorial -> 0
+      |_ -> -10
+      ) *)
+    | Hospital -> -10
+      (* (match game.game_stage with 
+      |Stage.Tutorial -> 0
+      |_ -> -10
+      ) *)
+
+let building_cost building= 
+  match building with
+    | Building.Police -> 
+      0
+    | Electricity -> 
+      0
+    | Fire -> 
+      0
+    | House -> -100
+    | University -> -500
+    | School -> -200
+    | Grocery -> -100
+    | Retail -> -20
+    | Apartment -> -200
+    | Greenspace -> -50
+    | Water -> 0
+    | Hospital -> 0
+  
+let get_population_change building = 
+  match building with
+  | Building.House -> 4
+  | Apartment -> 30
+  | School -> 20
+  | Grocery -> 5
+  | _ -> 0
+
+
 let print_game game = 
   print_s[%message (game:t)]
+
+
+(* internal state updating *)
+let update_happy_rate ~(g : t) ~(rate_change : int) : t =
+  { g with happy_rate = rate_change + g.happy_rate }
+
+let update_population_rate ~(g : t) ~(rate_change : int) : t =
+  { g with population_rate = rate_change + g.population_rate}
+
+let update_money_rate ~(g : t) ~(rate_change : int) : t =
+  { g with money_rate = rate_change + g.money_rate}
+
+let update_stats_from_building ~building ~game  = 
+  let new_game = {game with population = game.population + get_population_change building} in
+  let building_cost_game = {new_game with money = game.money + building_cost building} in
+  update_money_rate  ~g:building_cost_game ~rate_change: (get_money_change building)
+
 (* placing structures *)
 let get_building t ~position = Map.find t.board position
 
@@ -58,7 +138,8 @@ let place_building t ~position ~building =
         | None -> 1
         | Some count -> count + 1)
     in
-    Ok { t with board; building_counts }
+    let new_game = { t with board; building_counts } in
+    Ok (update_stats_from_building ~game:new_game ~building)
   else Error "position is out of bounds"
 
 let tutorial_placement t ~position ~building =
@@ -84,15 +165,7 @@ let remove_building t ~position =
 
 
 
-(* internal state updating *)
-let update_happy_rate (g : t) (new_rate : int) : t =
-  { g with happy_rate = new_rate }
 
-let update_population_rate (g : t) (new_rate : int) : t =
-  { g with population_rate = new_rate }
-
-let update_money_rate (g : t) (new_rate : int) : t =
-  { g with money_rate = new_rate }
 
 
 
@@ -111,11 +184,11 @@ let update_stats game =
 (* policies and effects *)
 let policy_effect ~policy ~game =
   match policy with
-  | Policy.Education -> update_happy_rate game (Int.min 100 game.happy_rate + 10)
+  | Policy.Education -> update_happy_rate ~g:game ~rate_change:(Int.min (100 - (game.happy_rate + 10)) 10)
   | Policy.Clean_Energy ->
-      update_happy_rate game (Int.min 100 game.happy_rate + 10)
+      update_happy_rate ~g:game ~rate_change:(Int.min (100 - (game.happy_rate + 10)) 10)
   | Policy.Disable_Mandatory ->
-      update_happy_rate game (Int.min 100 game.happy_rate + 10)
+      update_happy_rate ~g:game ~rate_change:(Int.min (100 - (game.happy_rate + 10)) 10)
   | _ -> game
 
 

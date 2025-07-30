@@ -26,9 +26,9 @@ val tutorial_placement :
 
 val remove_building : t -> position:Position.t -> (t, string) result
 val get_building : t -> position:Position.t -> Building.t option
-val update_happy_rate : t -> int -> t
-val update_population_rate : t -> int -> t
-val update_money_rate : t -> int -> t
+val update_happy_rate : g:t -> rate_change:int -> t
+val update_population_rate : g:t -> rate_change:int-> t
+val update_money_rate : g:t -> rate_change:int -> t
 val end_tutorial : t -> t
 val game_over : t -> t
 val policy_effect : policy:Policy.t -> game:t -> t
