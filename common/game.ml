@@ -193,7 +193,7 @@ let daily_events game =
   else if (protest_risk * Random.int 100) > 99 then Some Event.Protest
   else None
 
-  (*
+(*
 let get_public_opinion_categories (g : t) : Public_feedback.feedback_category list =
   let cats = ref [] in
   if List.exists g.implemented_policies ~f:(Policy.equal Policy.Disable_Mandatory) then
@@ -209,7 +209,8 @@ let get_public_opinion_messages (g : t) : string list =
   |> List.filter_map ~f:(fun cat ->
       Public_feedback.get_feedback_for_category cat |> random_element
     )
-*)
+
+   * )
 
 (* time passing *)
 let start_day game =

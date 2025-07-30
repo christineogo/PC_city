@@ -1,7 +1,7 @@
 .grid-cell {
     width: 40px;
     height: 40px;
-    border: 10px solid rgb(98, 98, 98);
+    border: 10px solid rgb(135, 135, 135);
     background-color: lightgray;
     cursor: pointer;
 }
