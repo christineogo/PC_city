@@ -51,6 +51,13 @@
     margin: 0.5em 0;
 }
 
+.tutorial-message {
+    margin-top: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #333;
+}
+
 
 .sidebar {
     width: 250px;

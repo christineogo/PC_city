@@ -16,7 +16,6 @@ type t = {
 }
 [@@deriving sexp, equal]
 
-
 let new_game () =
   {
     game_stage = Stage.Tutorial;
@@ -24,7 +23,7 @@ let new_game () =
     building_counts = Building.Map.empty;
     implemented_policies = [];
     population = 0;
-    money = 2000;
+    money = 5000;
     happiness = 20;
     population_rate = 0;
     money_rate = 0;
@@ -39,57 +38,56 @@ let medium_cost = -250
 let high_cost = -500
 let _ultra_high_cost = -750
 
-
-let get_money_change building= 
+let get_money_change building =
   match building with
-    | Building.Police -> daily_cost
+  | Building.Police ->
+      daily_cost
       (* (match game.game_stage with 
       |Stage.Tutorial -> 0
       |_ -> -10
       ) *)
-    | Electricity -> daily_cost
+  | Electricity ->
+      daily_cost
       (* (match game.game_stage with 
       |Stage.Tutorial -> 0
       |_ -> -10
       ) *)
-    | Fire -> daily_cost
-    | House -> 0
-    | University -> daily_cost
-    | School -> daily_cost
-    | Grocery -> -small_cost
-    | Retail -> -small_cost
-    | Apartment -> 0
-    | Greenspace -> 0
-    | Water -> daily_cost
+  | Fire -> daily_cost
+  | House -> 0
+  | University -> daily_cost
+  | School -> daily_cost
+  | Grocery -> -small_cost
+  | Retail -> -small_cost
+  | Apartment -> 0
+  | Greenspace -> 0
+  | Water ->
+      daily_cost
       (* (match game.game_stage with 
       |Stage.Tutorial -> 0
       |_ -> -10
       ) *)
-    | Hospital -> daily_cost
-      (* (match game.game_stage with 
+  | Hospital -> daily_cost
+(* (match game.game_stage with 
       |Stage.Tutorial -> 0
       |_ -> -10
       ) *)
 
-let building_cost building= 
+let building_cost building =
   match building with
-    | Building.Police -> 
-      0
-    | Electricity -> 
-      0
-    | Fire -> 
-      0
-    | House -> small_cost
-    | University -> high_cost
-    | School -> medium_cost
-    | Grocery -> medium_cost
-    | Retail -> medium_cost
-    | Apartment -> high_cost
-    | Greenspace -> daily_cost
-    | Water -> 0
-    | Hospital -> 0
-  
-let get_population_change building = 
+  | Building.Police -> 0
+  | Electricity -> 0
+  | Fire -> 0
+  | House -> small_cost
+  | University -> high_cost
+  | School -> medium_cost
+  | Grocery -> medium_cost
+  | Retail -> medium_cost
+  | Apartment -> high_cost
+  | Greenspace -> daily_cost
+  | Water -> 0
+  | Hospital -> 0
+
+let get_population_change building =
   match building with
   | Building.House -> 4
   | Apartment -> 30
@@ -97,25 +95,27 @@ let get_population_change building =
   | Grocery -> 5
   | _ -> 0
 
-
-let print_game game = 
-  print_s[%message (game:t)]
-
+let print_game game = print_s [%message (game : t)]
 
 (* internal state updating *)
 let update_happy_rate ~(g : t) ~(rate_change : int) : t =
   { g with happy_rate = rate_change + g.happy_rate }
 
 let update_population_rate ~(g : t) ~(rate_change : int) : t =
-  { g with population_rate = rate_change + g.population_rate}
+  { g with population_rate = rate_change + g.population_rate }
 
 let update_money_rate ~(g : t) ~(rate_change : int) : t =
-  { g with money_rate = rate_change + g.money_rate}
+  { g with money_rate = rate_change + g.money_rate }
 
-let update_stats_from_building ~building ~game  = 
-  let new_game = {game with population = game.population + get_population_change building} in
-  let building_cost_game = {new_game with money = game.money + building_cost building} in
-  update_money_rate  ~g:building_cost_game ~rate_change: (get_money_change building)
+let update_stats_from_building ~building ~game =
+  let new_game =
+    { game with population = game.population + get_population_change building }
+  in
+  let building_cost_game =
+    { new_game with money = game.money + building_cost building }
+  in
+  update_money_rate ~g:building_cost_game
+    ~rate_change:(get_money_change building)
 
 (* placing structures *)
 let get_building t ~position = Map.find t.board position
@@ -133,15 +133,16 @@ let place_building t ~position ~building =
   if dup_mandatory t ~building then
     Error "You cannot place multiple mandatory buildings"
   else if Position.in_bounds position then
-    if Map.mem t.board position then Error "already a building here" else
-    let board = Map.set t.board ~key:position ~data:building in
-    let building_counts =
-      Map.update t.building_counts building ~f:(function
-        | None -> 1
-        | Some count -> count + 1)
-    in
-    let new_game = { t with board; building_counts } in
-    Ok (update_stats_from_building ~game:new_game ~building)
+    if Map.mem t.board position then Error "already a building here"
+    else
+      let board = Map.set t.board ~key:position ~data:building in
+      let building_counts =
+        Map.update t.building_counts building ~f:(function
+          | None -> 1
+          | Some count -> count + 1)
+      in
+      let new_game = { t with board; building_counts } in
+      Ok (update_stats_from_building ~game:new_game ~building)
   else Error "position is out of bounds"
 
 let tutorial_placement t ~position ~building =
@@ -165,21 +166,18 @@ let remove_building t ~position =
       in
       Ok { t with board; building_counts }
 
-
-
-
-
-
-
-
 let end_tutorial (g : t) = { g with game_stage = Stage.Game_continues }
 let game_over (g : t) = { g with game_stage = Stage.Game_over }
 
 let update_stats game =
-  print_s [%message (Float.to_int(game.tax_rate *. (Int.to_float game.population)):int)];
+  print_s
+    [%message
+      (Float.to_int (game.tax_rate *. Int.to_float game.population) : int)];
   {
     game with
-    money = game.money + game.money_rate + Float.to_int(game.tax_rate *. (Int.to_float game.population)/.100.);
+    money =
+      game.money + game.money_rate
+      + Float.to_int (game.tax_rate *. Int.to_float game.population /. 100.);
     happiness = Int.min 100 (game.happiness + game.happy_rate);
     population = game.population + game.population_rate;
   }
@@ -187,18 +185,21 @@ let update_stats game =
 (* policies and effects *)
 let policy_effect ~policy ~game =
   match policy with
-  | Policy.Education -> update_happy_rate ~g:game ~rate_change:(Int.min (100 - game.happy_rate) 10)
+  | Policy.Education ->
+      update_happy_rate ~g:game
+        ~rate_change:(Int.min (100 - game.happy_rate) 10)
   | Policy.Clean_Energy ->
-      update_happy_rate ~g:game ~rate_change:(Int.min (100 - game.happy_rate) 10)
+      update_happy_rate ~g:game
+        ~rate_change:(Int.min (100 - game.happy_rate) 10)
   | Policy.Disable_Mandatory ->
-      update_happy_rate ~g:game ~rate_change:(Int.min (100 - game.happy_rate) 10)
+      update_happy_rate ~g:game
+        ~rate_change:(Int.min (100 - game.happy_rate) 10)
   | _ -> game
-
 
 let fire_event game =
   print_endline "A fire has hit your town!";
   game
-  (* {
+(* {
     game with
     population = Float.to_int (Int.to_float game.population *. 0.85);
     money = Float.to_int (Int.to_float game.money *. 0.85);
@@ -208,7 +209,7 @@ let fire_event game =
 let protest_event game =
   print_endline "Your residents are protesting!";
   game
-  (* {
+(* {
     game with
     population = game.population - 10;
     happiness = Int.max 0 game.happiness - 5;
@@ -217,7 +218,7 @@ let protest_event game =
 let robbery_event game =
   print_endline "Robberies have struck your town!";
   game
-  (* {
+(* {
     game with
     money = Float.to_int (Int.to_float game.money *. 0.75);
     happiness = Int.max 0 game.happiness - 5;
@@ -247,16 +248,30 @@ let get_protest_risk game =
   then protest_risk * 1
   else protest_risk
 
-let implement_policy game policy = 
-  if List.exists game.implemented_policies ~f:(fun item ->
+let implement_policy game policy =
+  if
+    List.exists game.implemented_policies ~f:(fun item ->
         Policy.equal item policy)
-        then Error "You have already implemented this policy!"
-  else Ok {game with implemented_policies = List.append game.implemented_policies [policy]}
+  then Error "You have already implemented this policy!"
+  else
+    Ok
+      {
+        game with
+        implemented_policies = List.append game.implemented_policies [ policy ];
+      }
 
 let remove_policy game policy =
-  if List.exists game.implemented_policies ~f:(fun item ->
+  if
+    List.exists game.implemented_policies ~f:(fun item ->
         Policy.equal item policy)
-        then Ok {game with implemented_policies = (List.filter game.implemented_policies ~f:(fun item -> not (Policy.equal item policy)))}
+  then
+    Ok
+      {
+        game with
+        implemented_policies =
+          List.filter game.implemented_policies ~f:(fun item ->
+              not (Policy.equal item policy));
+      }
   else Error "You cannot remove a policy you haven't implemented"
 
 let daily_events game =
@@ -264,11 +279,11 @@ let daily_events game =
   let robbery_risk = get_robbery_risk game in
   let fire_risk = get_fire_risk game in
   let protest_risk = get_protest_risk game in
-  if (robbery_risk * Random.int 100) > 99 then Some Event.Robbery
-  else if (fire_risk * Random.int 100) > 99 then Some Event.Fire
-  else if (protest_risk * Random.int 100) > 99 then Some Event.Protest
+  if robbery_risk * Random.int 100 > 99 then Some Event.Robbery
+  else if fire_risk * Random.int 100 > 99 then Some Event.Fire
+  else if protest_risk * Random.int 100 > 99 then Some Event.Protest
   else None
- 
+
 (* let get_public_opinion_categories (g : t) : Public_feedback.feedback_category list =
   let cats = [] in
   match (List.exists g.implemented_policies ~f:(Policy.equal Policy.Disable_Mandatory)) with 
@@ -286,7 +301,7 @@ let _get_public_opinion_messages (g : t) : string list =
 
 (* time passing *)
 let start_day game =
-  print_endline("possible event");
+  print_endline "possible event";
   match daily_events game with
   | Some Event.Robbery -> robbery_event game
   | Some Event.Fire -> fire_event game
@@ -294,8 +309,8 @@ let start_day game =
   | None -> game
 
 let tick game =
-  print_endline("new day started");
-  print_s [%message (game.current_day:int)];
+  print_endline "new day started";
+  print_s [%message (game.current_day : int)];
   let updated_game = update_stats game in
   let new_day =
     { updated_game with current_day = updated_game.current_day + 1 }
@@ -305,13 +320,16 @@ let tick game =
   else if new_day.population < 0 then
     Error "Game over! Population has reached 0"
   else  *)
-    Ok new_day
+  Ok new_day
 
-let add_mandatory ~position game = 
+let add_mandatory ~position game =
   let mandatory_buildings =
-    [ Building.Electricity; Water; Police; Hospital; Fire ] in
-  let next_mandatory = List.filter mandatory_buildings ~f:(fun item -> not (dup_mandatory game ~building:item)) in
-  if not (List.is_empty next_mandatory) then 
-    place_building game ~position ~building: (List.hd_exn next_mandatory)
-else Ok (end_tutorial game)
-
+    [ Building.Electricity; Water; Police; Hospital; Fire ]
+  in
+  let next_mandatory =
+    List.filter mandatory_buildings ~f:(fun item ->
+        not (dup_mandatory game ~building:item))
+  in
+  if not (List.is_empty next_mandatory) then
+    place_building game ~position ~building:(List.hd_exn next_mandatory)
+  else Ok (end_tutorial game)

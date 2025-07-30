@@ -47,7 +47,7 @@ let component ~(game : Game.t Value.t) =
         ~attrs:[ Attr.class_ "section-box" ]
         [
           Node.h3
-            ~attrs:[ Attr.class_ "section-title" ]
+            ~attrs:[ Attr.class_ "sidebar-title" ]
             [ Node.text "City Stats" ];
           Node.div
             ~attrs:[ Attr.class_ "city-stats" ]
@@ -79,7 +79,7 @@ let component ~(game : Game.t Value.t) =
         ~attrs:[ Attr.class_ "section-box" ]
         [
           Node.h3
-            ~attrs:[ Attr.class_ "section-title" ]
+            ~attrs:[ Attr.class_ "sidebar-title" ]
             [ Node.text "Public Opinion" ];
           Node.div
             ~attrs:[ Attr.class_ "public-opinion" ]

@@ -5,8 +5,7 @@ open! Virtual_dom.Vdom
 open! Js_of_ocaml
 open Game_strategies_common_lib
 
-
-let component = 
+let component =
   let%sub game, set_game =
     Bonsai.state
       (module struct
@@ -29,56 +28,48 @@ let component =
       end)
   in
 
-  let%sub title = Bonsai.const (Node.h1 ~attrs:[Attr.class_ "title"] [Node.text "PC City"]) in
-  let%sub grid = Grid.component ~game ~set_game ~selected_cell ~set_selected_cell ~set_error_message in 
-  let%sub right_sidebar = City_result.component ~game in 
-  let%sub left_sidebar = City_planner.component ~game ~set_game ~selected_cell ~set_error_message in 
+  let%sub title =
+    Bonsai.const
+      (Node.h1 ~attrs:[ Attr.class_ "title" ] [ Node.text "PC City" ])
+  in
+  let%sub tutorial_message =
+    Bonsai.const
+      (Node.h3
+         ~attrs:[ Attr.class_ "tutorial-message" ]
+         [
+           Node.text
+             "You must place your mandatory items first, by selecting the \
+              location grid block where you would like them to automatically \
+              be placed.";
+         ])
+  in
 
+  let%sub grid =
+    Grid.component ~game ~set_game ~selected_cell ~set_selected_cell
+      ~set_error_message
+  in
+  let%sub right_sidebar = City_result.component ~game in
+  let%sub left_sidebar =
+    City_planner.component ~game ~set_game ~selected_cell ~set_error_message
+  in
 
-  let%sub tick_handler = 
-    let%arr game = game and
-    set_game = set_game in (
-      (* print_endline("new day"); *)
-      set_game (Game.start_day (Result.ok_or_failwith (Game.tick game)))) 
-  (* in
-  let%sub _ =
-    let%arr game = game in
-    Game.tick game *)
+  let%sub tick_handler =
+    let%arr game = game and set_game = set_game in
+    set_game (Game.start_day (Result.ok_or_failwith (Game.tick game)))
   in
   let%sub () =
-    Bonsai.Clock.every
-      ~trigger_on_activate: true
-      ~when_to_start_next_effect: `Every_multiple_of_period_non_blocking
-      (Time_ns.Span.of_sec 10.0)
-      tick_handler
-
- in
-
- (* let%sub event_handler = 
-    let%arr game = game and
-    set_game = set_game in (
-      print_endline("trying to do an event");
-      set_game (Game.start_day game)) 
+    Bonsai.Clock.every ~trigger_on_activate:true
+      ~when_to_start_next_effect:`Every_multiple_of_period_non_blocking
+      (Time_ns.Span.of_sec 10.0) tick_handler
   in
-  let%sub _ =
-    let%arr game = game in
-    Game.start_day game
-  in
-  let%sub () =
-    Bonsai.Clock.every
-      ~trigger_on_activate: true
-      ~when_to_start_next_effect: `Every_multiple_of_period_non_blocking
-      (Time_ns.Span.of_sec 20.0)
-      event_handler
-
- in *)
-
 
   let%arr title = title
-  and grid = grid and 
-  right_sidebar = right_sidebar
-  and left_sidebar = left_sidebar and set_game = set_game 
-  in
+  and tutorial_message = tutorial_message
+  and grid = grid
+  and right_sidebar = right_sidebar
+  and left_sidebar = left_sidebar
+  and set_game = set_game in
+
   let new_game_on_click (_ev : Dom_html.mouseEvent Js.t) : unit Ui_effect.t =
     let new_game = Game.new_game () in
     Game.print_game new_game;
@@ -86,10 +77,15 @@ let component =
   in
   let button =
     Node.button
-      ~attrs:[Attr.on_click new_game_on_click]
-      [Node.text "Start Game"]
+      ~attrs:[ Attr.on_click new_game_on_click ]
+      [ Node.text "Start Game" ]
   in
-  View.vbox [title; button; View.hbox [left_sidebar; grid ;  right_sidebar ] ]
-  
+  View.vbox
+    [
+      title;
+      tutorial_message;
+      button;
+      View.hbox [ left_sidebar; grid; right_sidebar ];
+    ]
 
 let () = Bonsai_web.Start.start component
