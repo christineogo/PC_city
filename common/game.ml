@@ -27,7 +27,7 @@ let new_game () =
     money = 1000;
     happiness = 20;
     population_rate = 0;
-    money_rate = 10;
+    money_rate = 0;
     happy_rate = 0;
     current_day = 0;
     tax_rate = 0.0;
@@ -51,12 +51,12 @@ let get_money_change building=
       |Stage.Tutorial -> 0
       |_ -> -10
       ) *)
-    | House -> 10
+    | House -> 0
     | University -> -50
     | School -> -50
     | Grocery -> 50
     | Retail -> 20
-    | Apartment -> 50
+    | Apartment -> 0
     | Greenspace -> 0
     | Water -> -10
       (* (match game.game_stage with 
@@ -174,9 +174,10 @@ let end_tutorial (g : t) = { g with game_stage = Stage.Game_continues }
 let game_over (g : t) = { g with game_stage = Stage.Game_over }
 
 let update_stats game =
+  print_s [%message (Float.to_int(game.tax_rate *. (Int.to_float game.population)/.100.):int)];
   {
     game with
-    money = game.money + game.money_rate;
+    money = game.money + game.money_rate + Float.to_int(game.tax_rate *. (Int.to_float game.population)/.100.);
     happiness = Int.min 100 (game.happiness + game.happy_rate);
     population = game.population + game.population_rate;
   }
@@ -184,11 +185,11 @@ let update_stats game =
 (* policies and effects *)
 let policy_effect ~policy ~game =
   match policy with
-  | Policy.Education -> update_happy_rate ~g:game ~rate_change:(Int.min (100 - (game.happy_rate + 10)) 10)
+  | Policy.Education -> update_happy_rate ~g:game ~rate_change:(Int.min (100 - game.happy_rate) 10)
   | Policy.Clean_Energy ->
-      update_happy_rate ~g:game ~rate_change:(Int.min (100 - (game.happy_rate + 10)) 10)
+      update_happy_rate ~g:game ~rate_change:(Int.min (100 - game.happy_rate) 10)
   | Policy.Disable_Mandatory ->
-      update_happy_rate ~g:game ~rate_change:(Int.min (100 - (game.happy_rate + 10)) 10)
+      update_happy_rate ~g:game ~rate_change:(Int.min (100 - game.happy_rate) 10)
   | _ -> game
 
 
@@ -297,11 +298,11 @@ let tick game =
   let new_day =
     { updated_game with current_day = updated_game.current_day + 1 }
   in
-  if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"
+  (* if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"
   else if new_day.money < 0 then Error "Game over! Money has reached 0"
   else if new_day.population < 0 then
     Error "Game over! Population has reached 0"
-  else 
+  else  *)
     Ok new_day
 
 let add_mandatory ~position game = 
