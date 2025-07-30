@@ -24,7 +24,7 @@ let new_game () =
     building_counts = Building.Map.empty;
     implemented_policies = [];
     population = 0;
-    money = 1000;
+    money = 2000;
     happiness = 20;
     population_rate = 0;
     money_rate = 0;
@@ -33,37 +33,39 @@ let new_game () =
     tax_rate = 0.0;
   }
 
+let daily_cost = -50
+let small_cost = -100
+let medium_cost = -250
+let high_cost = -500
+let _ultra_high_cost = -750
+
 
 let get_money_change building= 
   match building with
-    | Building.Police -> -10
+    | Building.Police -> daily_cost
       (* (match game.game_stage with 
       |Stage.Tutorial -> 0
       |_ -> -10
       ) *)
-    | Electricity -> -10
+    | Electricity -> daily_cost
       (* (match game.game_stage with 
       |Stage.Tutorial -> 0
       |_ -> -10
       ) *)
-    | Fire -> -10
-      (* (match game.game_stage with 
-      |Stage.Tutorial -> 0
-      |_ -> -10
-      ) *)
+    | Fire -> daily_cost
     | House -> 0
-    | University -> -50
-    | School -> -50
-    | Grocery -> 50
-    | Retail -> 20
+    | University -> daily_cost
+    | School -> daily_cost
+    | Grocery -> -small_cost
+    | Retail -> -small_cost
     | Apartment -> 0
     | Greenspace -> 0
-    | Water -> -10
+    | Water -> daily_cost
       (* (match game.game_stage with 
       |Stage.Tutorial -> 0
       |_ -> -10
       ) *)
-    | Hospital -> -10
+    | Hospital -> daily_cost
       (* (match game.game_stage with 
       |Stage.Tutorial -> 0
       |_ -> -10
@@ -77,13 +79,13 @@ let building_cost building=
       0
     | Fire -> 
       0
-    | House -> -100
-    | University -> -500
-    | School -> -200
-    | Grocery -> -100
-    | Retail -> -20
-    | Apartment -> -200
-    | Greenspace -> -50
+    | House -> small_cost
+    | University -> high_cost
+    | School -> medium_cost
+    | Grocery -> medium_cost
+    | Retail -> medium_cost
+    | Apartment -> high_cost
+    | Greenspace -> daily_cost
     | Water -> 0
     | Hospital -> 0
   
@@ -120,7 +122,7 @@ let get_building t ~position = Map.find t.board position
 
 let dup_mandatory t ~building =
   let mandatory_buildings =
-    [ Building.Electricity; Building.Fire; Building.Police ]
+    [ Building.Electricity; Water; Police; Hospital; Fire ]
   in
   if not (List.exists mandatory_buildings ~f:(Building.equal building)) then
     false
@@ -144,7 +146,7 @@ let place_building t ~position ~building =
 
 let tutorial_placement t ~position ~building =
   let mandatory_buildings =
-    [ Building.Electricity; Building.Fire; Building.Police ]
+    [ Building.Electricity; Water; Police; Hospital; Fire ]
   in
   if not (List.exists mandatory_buildings ~f:(Building.equal building)) then
     Error "You can only place mandatory buildings in the tutorial"
@@ -174,7 +176,7 @@ let end_tutorial (g : t) = { g with game_stage = Stage.Game_continues }
 let game_over (g : t) = { g with game_stage = Stage.Game_over }
 
 let update_stats game =
-  print_s [%message (Float.to_int(game.tax_rate *. (Int.to_float game.population)/.100.):int)];
+  print_s [%message (Float.to_int(game.tax_rate *. (Int.to_float game.population)):int)];
   {
     game with
     money = game.money + game.money_rate + Float.to_int(game.tax_rate *. (Int.to_float game.population)/.100.);
@@ -307,7 +309,7 @@ let tick game =
 
 let add_mandatory ~position game = 
   let mandatory_buildings =
-    [ Building.Electricity; Building.Fire; Building.Police ] in
+    [ Building.Electricity; Water; Police; Hospital; Fire ] in
   let next_mandatory = List.filter mandatory_buildings ~f:(fun item -> not (dup_mandatory game ~building:item)) in
   if not (List.is_empty next_mandatory) then 
     place_building game ~position ~building: (List.hd_exn next_mandatory)
