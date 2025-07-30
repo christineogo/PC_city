@@ -24,7 +24,7 @@ let new_game () =
     implemented_policies = [];
     population = 0;
     money = 5000;
-    happiness = 20;
+    happiness = 0;
     population_rate = 0;
     money_rate = 0;
     happy_rate = 0;
@@ -177,7 +177,7 @@ let update_stats game =
     game with
     money =
       game.money + game.money_rate
-      + Float.to_int (game.tax_rate *. Int.to_float game.population /. 100.);
+      + Float.to_int (game.tax_rate *. Int.to_float game.population /. 10.);
     happiness = Int.min 100 (game.happiness + game.happy_rate);
     population = game.population + game.population_rate;
   }
@@ -308,12 +308,51 @@ let start_day game =
   | Some Event.Protest -> protest_event game
   | None -> game
 
+let calculate_happiness (game : t) : int =
+  let get_count b =
+    Map.find game.building_counts b |> Option.value ~default:0
+  in
+  let greenspace = get_count Greenspace in
+  let grocery = get_count Grocery in
+  let retail = get_count Retail in
+  let house = get_count House in
+  let apartment = get_count Apartment in
+  let school = get_count School in
+  let university = get_count University in
+  let housing = house + apartment in
+  let business = grocery + retail in
+  (* Greenspace score: maxed when there's 1 greenspace per housing unit *)
+  let greenspace_score =
+    Float.min 1.0 (Float.of_int greenspace /. Float.of_int (housing + 1))
+  in
+  (* Business-to-housing ratio: optimal around 0.5 *)
+  let business_ratio = Float.of_int business /. Float.of_int (housing + 1) in
+  let business_score =
+    if Float.(business_ratio >= 0.4 && business_ratio <= 0.7) then 1.0
+    else Float.max 0.0 (1.0 -. Float.abs (business_ratio -. 0.55) *. 2.0)
+  in
+  (* Education score based on estimated students served *)
+  let total_population = game.population in
+  let students = total_population / 3 in
+  let school_capacity = (school * 25) + (university * 100) in
+  let education_score =
+    Float.min 1.0 (Float.of_int school_capacity /. Float.of_int (students + 1))
+  in
+  (* Weighted average *)
+  let weighted_score =
+    (0.4 *. greenspace_score)
+    +. (0.3 *. business_score)
+    +. (0.3 *. education_score)
+  in
+  Float.to_int (weighted_score *. 100.0)
+
+
 let tick game =
   print_endline "new day started";
   print_s [%message (game.current_day : int)];
   let updated_game = update_stats game in
   let new_day =
-    { updated_game with current_day = updated_game.current_day + 1 }
+    { updated_game with current_day = updated_game.current_day + 1; happiness = calculate_happiness game }
   in
   (* if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"
   else if new_day.money < 0 then Error "Game over! Money has reached 0"
