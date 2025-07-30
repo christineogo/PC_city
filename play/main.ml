@@ -85,7 +85,14 @@ let component =
       title;
       tutorial_message;
       button;
-      View.hbox [ left_sidebar; grid; right_sidebar ];
+      (*note to self, make button look better*)
+      Node.div
+        ~attrs:
+          [
+            Attr.create "style"
+              "display: flex; justify-content: center; width: 100%;";
+          ]
+        [ View.hbox [ left_sidebar; grid; right_sidebar ] ];
     ]
 
 let () = Bonsai_web.Start.start component

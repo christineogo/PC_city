@@ -37,6 +37,7 @@
     margin: 20px;
 }
 
+
 .title {
     text-align: center;
     font-family: 'Impact', 'Arial Black', sans-serif;
@@ -49,13 +50,6 @@
         2px 2px 0 #000000,
         4px 4px 0 rgba(0, 0, 0, 0.3);
     margin: 0.5em 0;
-}
-
-.tutorial-message {
-    margin-top: 0;
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #333;
 }
 
 
@@ -72,6 +66,15 @@
     font-size: 1.25rem;
     font-weight: 600;
     color: #333;
+}
+
+.tutorial-message {
+    text-align: center;
+    margin-top: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #ff0000;
+    font-family: sans-serif;
 }
 
 .legend,
@@ -170,4 +173,25 @@
     background: linear-gradient(90deg, #b9e937, #4ecb4e 85%);
     border-radius: 7px 0 0 7px;
     transition: width 0.4s cubic-bezier(.44, 2, .61, -0.6);
+}
+
+.button {
+    padding: 0.5rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 600;
+    color: white;
+    background-color: #3c7;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.button:hover {
+    background-color: #36b36e;
+}
+
+.button:active {
+    transform: scale(0.97);
+    background-color: #2e9d5e;
 }
