@@ -142,3 +142,19 @@
     border-radius: 7px 0 0 7px;
     transition: width 0.4s cubic-bezier(.44, 2, .61, -0.6);
 }
+
+.tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-wrapper:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.tooltip {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    pointer-events: none;
+}
