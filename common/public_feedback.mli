@@ -21,3 +21,5 @@ val greenspace_neg : string list
 val high_business_ratio : string list 
 val low_business_ratio : string list 
 val no_grocery : string list 
+
+val get_feedback_for_category: feedback_category -> string list

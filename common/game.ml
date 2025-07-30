@@ -192,25 +192,21 @@ let daily_events game =
   else if (fire_risk * Random.int 100) > 99 then Some Event.Fire
   else if (protest_risk * Random.int 100) > 99 then Some Event.Protest
   else None
-
-(*
+ 
 let get_public_opinion_categories (g : t) : Public_feedback.feedback_category list =
-  let cats = ref [] in
-  if List.exists g.implemented_policies ~f:(Policy.equal Policy.Disable_Mandatory) then
-    cats := Defund_mandatory :: !cats;
-  
-let random_element lst =
-  match lst with
-  | [] -> None
-  | _ -> Some (List.nth_exn lst (Random.int (List.length lst)))
+  let cats = [] in
+  match (List.exists g.implemented_policies ~f:(Policy.equal Policy.Disable_Mandatory)) with 
+  |true -> List.append cats [Public_feedback.Defund_mandatory]
+  |false -> cats
 
-let get_public_opinion_messages (g : t) : string list =
+
+let _get_public_opinion_messages (g : t) : string list =
   get_public_opinion_categories g
   |> List.filter_map ~f:(fun cat ->
-      Public_feedback.get_feedback_for_category cat |> random_element
+      List.random_element (Public_feedback.get_feedback_for_category cat)
     )
 
-   * )
+  
 
 (* time passing *)
 let start_day game =

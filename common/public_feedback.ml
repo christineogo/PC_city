@@ -11,6 +11,8 @@ type feedback_category =
   | No_grocery
 [@@deriving sexp, equal]
 
+
+
 let defund_mandatory =
   [
     "Mandatory services? You mean optional at this point!";
@@ -88,3 +90,16 @@ let no_grocery = [
   "This is literally a food desert..."; 
   "I NEED fresh fruit and vegatables. Please please can we have a grocery store."
 ]
+
+let get_feedback_for_category category= 
+  match category with 
+  | Defund_mandatory -> defund_mandatory
+  | Clean_power_pos ->clean_power_pos
+  | Clean_power_neg -> clean_power_neg
+  | High_occupancy -> high_occupancy
+  | High_tax -> high_tax
+  | Greenspace_pos -> greenspace_pos
+  | Greenspace_neg -> greenspace_pos
+  | High_business_ratio -> high_business_ratio
+  | Low_business_ratio -> low_business_ratio
+  | No_grocery -> no_grocery 
