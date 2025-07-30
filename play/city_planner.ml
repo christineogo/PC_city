@@ -166,36 +166,31 @@ let component ~(game : Game.t Value.t)
                    ~attrs:[ Attr.class_ "legend-label" ]
                    [ Node.text (string_of_int count) ];
                  Node.span
-                   ~attrs:
-                     [
-                       Attr.class_ "legend-label";
-                       Attr.create "style"
-                         "position: relative; cursor: pointer;";
-                     ]
+                   ~attrs:[ Attr.class_ "tooltip-wrapper" ]
                    [
-                     Node.text label;
+                     Node.span
+                       ~attrs:[ Attr.class_ "legend-label" ]
+                       [ Node.text label ];
                      Node.span
                        ~attrs:
                          [
                            Attr.class_ "tooltip";
                            Attr.create "style"
                              "\n\
-                             \          visibility: hidden;\n\
-                             \          background-color: #333;\n\
-                             \          color: #fff;\n\
-                             \          text-align: left;\n\
-                             \          padding: 5px;\n\
-                             \          border-radius: 4px;\n\
                              \          position: absolute;\n\
-                             \          z-index: 1;\n\
                              \          bottom: 100%;\n\
                              \          left: 0;\n\
                              \          margin-bottom: 5px;\n\
-                             \          width: 200px;\n\
+                             \          background: #333;\n\
+                             \          color: #fff;\n\
+                             \          padding: 5px;\n\
+                             \          border-radius: 4px;\n\
                              \          font-size: 12px;\n\
+                             \          width: 200px;\n\
+                             \          z-index: 10;\n\
                              \        ";
                          ]
-                       [ Node.text (cost ^ " – " ^ info) ];
+                       [ Node.text cost; Node.text " - "; Node.text info ];
                    ];
                  Node.button
                    ~attrs:
@@ -215,13 +210,37 @@ let component ~(game : Game.t Value.t)
             [ Node.text "Policies" ];
           Node.div
             ~attrs:[ Attr.class_ "policies" ]
-            (List.map policies ~f:(fun (p, _cost, _info) ->
+            (List.map policies ~f:(fun (label, cost, info) ->
                  Node.div
                    ~attrs:[ Attr.class_ "policy-item" ]
                    [
                      Node.span
-                       ~attrs:[ Attr.class_ "policy-label" ]
-                       [ Node.text p ];
+                       ~attrs:[ Attr.class_ "tooltip-wrapper" ]
+                       [
+                         Node.span
+                           ~attrs:[ Attr.class_ "legend-label" ]
+                           [ Node.text label ];
+                         Node.span
+                           ~attrs:
+                             [
+                               Attr.class_ "tooltip";
+                               Attr.create "style"
+                                 "\n\
+                                 \          position: absolute;\n\
+                                 \          bottom: 100%;\n\
+                                 \          left: 0;\n\
+                                 \          margin-bottom: 5px;\n\
+                                 \          background: #333;\n\
+                                 \          color: #fff;\n\
+                                 \          padding: 5px;\n\
+                                 \          border-radius: 4px;\n\
+                                 \          font-size: 12px;\n\
+                                 \          width: 200px;\n\
+                                 \          z-index: 10;\n\
+                                 \        ";
+                             ]
+                           [ Node.text (cost ^ " - " ^ info) ];
+                       ];
                      Node.button
                        ~attrs:
                          [

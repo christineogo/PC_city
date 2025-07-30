@@ -1,3 +1,25 @@
+.tooltip-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip {
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.tooltip-wrapper:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+}
+
+.sidebar,
+.legend,
+.legend-item {
+    overflow: visible;
+}
+
 .grid-cell {
     width: 40px;
     height: 40px;
@@ -141,20 +163,4 @@
     background: linear-gradient(90deg, #b9e937, #4ecb4e 85%);
     border-radius: 7px 0 0 7px;
     transition: width 0.4s cubic-bezier(.44, 2, .61, -0.6);
-}
-
-.tooltip-wrapper {
-    position: relative;
-    display: inline-block;
-}
-
-.tooltip-wrapper:hover .tooltip {
-    visibility: visible;
-    opacity: 1;
-}
-
-.tooltip {
-    opacity: 0;
-    transition: opacity 0.2s ease-in-out;
-    pointer-events: none;
 }
