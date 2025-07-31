@@ -4,19 +4,37 @@ open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
 open! Game_strategies_common_lib
 
-(*switch this list with the list in the backend *)
-let opinion_messages =
-  [
-    "The power is out again...";
-    "The hospitals are so fugazi(bad), I hope no one gets sick!";
-    "Who's reaching my illegal function! There's no 12(police) to stop it!";
-    "Bro I love the new education policy... Everyone is so locked in (focused)!";
-    "These high taxes have me feeling a certain type of way (upset). Might \
-     leave soon...idk";
-  ]
-
 let component ~(game : Game.t Value.t) =
-  let%arr game = game in
+  let%sub opinion_messages, set_opinion_messages =
+    Bonsai.state
+      (module struct
+        type t = string list [@@deriving sexp, equal]
+      end)
+      ~default_model:[]
+  in
+
+  let%sub inject_opinion_message =
+    let%arr game = game
+    and set_opinion_messages = set_opinion_messages
+    and opinion_messages = opinion_messages in
+    let open Public_feedback in
+    let categories = Game.get_feedback_categories game in
+    match
+      List.find_map categories ~f:(fun cat ->
+          List.random_element (get_feedback_for_category cat))
+    with
+    | Some msg -> set_opinion_messages (msg :: opinion_messages)
+    | None -> Effect.Ignore
+  in
+
+  (* Automatically run inject_opinion_message each tick *)
+  let%sub () =
+    Bonsai.Clock.every ~trigger_on_activate:true
+      ~when_to_start_next_effect:`Every_multiple_of_period_non_blocking
+      (Time_ns.Span.of_sec 10.0) inject_opinion_message
+  in
+
+  let%arr game = game and opinion_messages = opinion_messages in
   let stats_items =
     [
       ("Population: ", game.population);
@@ -42,7 +60,7 @@ let component ~(game : Game.t Value.t) =
   Node.div
     ~attrs:[ Attr.class_ "sidebar" ]
     [
-      (*City stats*)
+      (* City Stats *)
       Node.div
         ~attrs:[ Attr.class_ "section-box" ]
         [
@@ -74,7 +92,7 @@ let component ~(game : Game.t Value.t) =
                  ];
                ]);
         ];
-      (*Public Opinion*)
+      (* Public Opinion Log *)
       Node.div
         ~attrs:[ Attr.class_ "section-box" ]
         [
@@ -82,7 +100,11 @@ let component ~(game : Game.t Value.t) =
             ~attrs:[ Attr.class_ "sidebar-title" ]
             [ Node.text "Public Opinion" ];
           Node.div
-            ~attrs:[ Attr.class_ "public-opinion" ]
+            ~attrs:
+              [
+                Attr.class_ "public-opinion";
+                Attr.create "style" "overflow-y: scroll; max-height: 200px;";
+              ]
             (List.map opinion_messages ~f:(fun message ->
                  Node.div
                    ~attrs:[ Attr.class_ "public-item" ]

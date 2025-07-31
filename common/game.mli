@@ -12,7 +12,7 @@ type t = {
   money_rate : int;
   happy_rate : int;
   current_day : int;
-  tax_rate : float
+  tax_rate : float;
 }
 [@@deriving sexp, equal]
 
@@ -27,17 +27,15 @@ val tutorial_placement :
 val remove_building : t -> position:Position.t -> (t, string) result
 val get_building : t -> position:Position.t -> Building.t option
 val update_happy_rate : g:t -> rate_change:int -> t
-val update_population_rate : g:t -> rate_change:int-> t
+val update_population_rate : g:t -> rate_change:int -> t
 val update_money_rate : g:t -> rate_change:int -> t
 val end_tutorial : t -> t
 val game_over : t -> t
 val enact_policy : policy:Policy.t -> game:t -> (t, string) result
 val start_day : t -> t
+val get_feedback_categories : t -> Public_feedback.feedback_category list
 val tick : t -> (t, string) result
-
 val implement_policy : t -> Policy.t -> (t, string) result
 val remove_policy : t -> Policy.t -> (t, string) result
-
-val print_game: t -> unit
-
+val print_game : t -> unit
 val add_mandatory : position:Position.t -> t -> (t, string) result

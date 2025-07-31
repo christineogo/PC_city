@@ -291,20 +291,45 @@ let daily_events game =
   else if protest_risk * Random.int 100 > 99 then Some Event.Protest
   else None
 
-(* let get_public_opinion_categories (g : t) : Public_feedback.feedback_category list =
-  let cats = [] in
-  match (List.exists g.implemented_policies ~f:(Policy.equal Policy.Disable_Mandatory)) with 
-  |true -> List.append cats [Public_feedback.Defund_mandatory]
-  |false -> cats
+let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
+  let get_count b = Map.find g.building_counts b |> Option.value ~default:0 in
+  let categories = ref [] in
 
+  (* Check policies *)
+  if
+    List.exists g.implemented_policies
+      ~f:(Policy.equal Policy.Disable_Mandatory)
+  then categories := Public_feedback.Defund_mandatory :: !categories;
 
-let _get_public_opinion_messages (g : t) : string list =
-  get_public_opinion_categories g
-  |> List.filter_map ~f:(fun cat ->
-      List.random_element (Public_feedback.get_feedback_for_category cat)
-    )
+  if List.exists g.implemented_policies ~f:(Policy.equal Policy.Clean_Energy)
+  then categories := Clean_power_pos :: !categories;
 
-   *)
+  (* Check tax *)
+  if Float.(g.tax_rate > 40.0) then categories := High_tax :: !categories;
+
+  (* Greenspace *)
+  let greenspace = get_count Greenspace in
+  if greenspace >= 5 then categories := Greenspace_pos :: !categories
+  else categories := Greenspace_neg :: !categories;
+
+  (* Grocery check *)
+  if get_count Grocery = 0 then categories := No_grocery :: !categories;
+
+  (* Business ratio *)
+  let business = get_count Grocery + get_count Retail in
+  let housing = get_count House + get_count Apartment in
+  let ratio = Float.of_int business /. Float.of_int (housing + 1) in
+  if Float.(ratio >. 1.2) then categories := High_business_ratio :: !categories
+  else if Float.(ratio <. 0.8) then
+    categories := Low_business_ratio :: !categories;
+
+  (* High occupancy (very dense city) *)
+  if housing > 10 && g.population / housing > 10 then
+    categories := High_occupancy :: !categories;
+
+  !categories
+
+(*write expect test*)
 
 (* time passing *)
 let start_day game =
@@ -336,7 +361,7 @@ let calculate_happiness (game : t) : int =
   let business_ratio = Float.of_int business /. Float.of_int (housing + 1) in
   let business_score =
     if Float.(business_ratio >= 0.4 && business_ratio <= 0.7) then 1.0
-    else Float.max 0.0 (1.0 -. Float.abs (business_ratio -. 0.55) *. 2.0)
+    else Float.max 0.0 (1.0 -. (Float.abs (business_ratio -. 0.55) *. 2.0))
   in
   (* Education score based on estimated students served *)
   let total_population = game.population in
@@ -347,19 +372,21 @@ let calculate_happiness (game : t) : int =
   in
   (* Weighted average *)
   let weighted_score =
-    (0.4 *. greenspace_score)
-    +. (0.3 *. business_score)
+    (0.4 *. greenspace_score) +. (0.3 *. business_score)
     +. (0.3 *. education_score)
   in
   Float.to_int (weighted_score *. 100.0)
-
 
 let tick game =
   print_endline "new day started";
   print_s [%message (game.current_day : int)];
   let updated_game = update_stats game in
   let new_day =
-    { updated_game with current_day = updated_game.current_day + 1; happiness = calculate_happiness game }
+    {
+      updated_game with
+      current_day = updated_game.current_day + 1;
+      happiness = calculate_happiness game;
+    }
   in
   (* if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"
   else if new_day.money < 0 then Error "Game over! Money has reached 0"
