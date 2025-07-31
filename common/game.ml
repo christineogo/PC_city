@@ -38,6 +38,9 @@ let medium_cost = -250
 let high_cost = -500
 let ultra_high_cost = -750
 
+let mandatory_buildings =
+    [ Building.Electricity; Water; Police; Hospital; Fire ]
+
 let get_money_change building =
   match building with
   | Building.Police ->
@@ -121,9 +124,6 @@ let update_stats_from_building ~building ~game =
 let get_building t ~position = Map.find t.board position
 
 let dup_mandatory t ~building =
-  let mandatory_buildings =
-    [ Building.Electricity; Water; Police; Hospital; Fire ]
-  in
   if not (List.exists mandatory_buildings ~f:(Building.equal building)) then
     false
   else
@@ -146,9 +146,6 @@ let place_building t ~position ~building =
   else Error "position is out of bounds"
 
 let tutorial_placement t ~position ~building =
-  let mandatory_buildings =
-    [ Building.Electricity; Water; Police; Hospital; Fire ]
-  in
   if not (List.exists mandatory_buildings ~f:(Building.equal building)) then
     Error "You can only place mandatory buildings in the tutorial"
   else place_building t ~position ~building
@@ -183,9 +180,6 @@ let update_stats game =
   }
 
 let all_mandatory_placed game =
-  let mandatory_buildings =
-    [ Building.Electricity; Water; Police; Hospital; Fire ]
-  in
   let next_mandatory =
     List.filter mandatory_buildings ~f:(fun item ->
         not (dup_mandatory game ~building:item))
@@ -206,7 +200,7 @@ let disable_effect game =
       }
   else Error "You must have all mandatory buildings placed before disabling!"
 
-let _increase_occupancy_effect game =
+let increase_occupancy_effect game =
   if
     Map.mem game.building_counts Building.Apartment
     || Map.mem game.building_counts House
@@ -249,13 +243,8 @@ let enact_policy ~policy ~game =
             }
       | Disable_Mandatory -> disable_effect new_game
       | Increase_Occupancy ->
-          Ok
-            {
-              (update_happy_rate ~g:new_game
-                 ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
-              with
-              money = game.money + ultra_high_cost;
-            })
+            increase_occupancy_effect new_game
+            )
 
 let fire_event game =
   print_endline "A fire has hit your town!";
@@ -358,8 +347,6 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
   if List.exists g.implemented_policies ~f:(Policy.equal Policy.Clean_Energy)
   then categories := Clean_power_pos :: !categories;
 
-  (* Tax feedback: assume tax_rate is a float in [0.0, 1.0] *)
-  if Float.(g.tax_rate > 0.4) then categories := High_tax :: !categories;
 
   (* Greenspace feedback *)
   let greenspace = get_count Greenspace in
@@ -383,8 +370,14 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
   if List.exists g.implemented_policies ~f:(Policy.equal Policy.Increase_Occupancy) then (
   if housing > 0 && g.population / housing > 10 then
     categories := High_occupancy :: !categories);
+  
+  
+  (* Tax feedback: assume tax_rate is a float in [0.0, 1.0] *)
+  if Float.(g.tax_rate > 40.) then categories := High_tax :: !categories; print_s[%message(g.tax_rate:float)];
+  
   print_s[%message (!categories: Public_feedback.feedback_category list)];
   !categories
+
 
 (*write expect test*)
 
@@ -453,9 +446,6 @@ let tick game =
   Ok new_day
 
 let add_mandatory ~position game =
-  let mandatory_buildings =
-    [ Building.Electricity; Water; Police; Hospital; Fire ]
-  in
   let next_mandatory =
     List.filter mandatory_buildings ~f:(fun item ->
         not (dup_mandatory game ~building:item))
