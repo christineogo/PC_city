@@ -87,11 +87,14 @@
 .legend-item,
 .policy-item,
 .mandatory-item,
-.stats-item,
-.public-item {
+.stats-item {
     display: flex;
     align-items: center;
     margin-bottom: 0.5rem;
+}
+
+.public-item {
+    font-weight: 300;
 }
 
 .legend-label,
@@ -181,23 +184,27 @@
     transition: width 0.4s cubic-bezier(.44, 2, .61, -0.6);
 }
 
+
 .button {
-    padding: 0.5rem 1.25rem;
+    padding: 0.6rem 1.4rem;
     font-size: 1rem;
     font-weight: 600;
     color: white;
     background-color: #3c7;
     border: none;
-    border-radius: 6px;
+    border-radius: 12px;
     cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     transition: background-color 0.2s ease, transform 0.1s ease;
+    width: 150px;
 }
 
 .button:hover {
     background-color: #36b36e;
+    transform: translateY(-1px);
 }
 
 .button:active {
-    transform: scale(0.97);
     background-color: #2e9d5e;
+    transform: scale(0.98);
 }

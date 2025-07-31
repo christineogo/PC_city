@@ -88,16 +88,24 @@ let component =
     set_game new_game
   in
   let button =
-    Node.button
-      ~attrs:[ Attr.on_click new_game_on_click ]
-      [ Node.text "Start Game" ]
+    Node.div
+      ~attrs:
+        [
+          Attr.create "style"
+            "display: flex; justify-content: center; margin: 1rem 0;";
+        ]
+      [
+        Node.button
+          ~attrs:[ Attr.class_ "button"; Attr.on_click new_game_on_click ]
+          [ Node.text "Start Game" ];
+      ]
   in
+
   View.vbox
     [
       title;
-      tutorial_message;
       button;
-      (*note to self, make button look better*)
+      tutorial_message;
       Node.div
         ~attrs:
           [

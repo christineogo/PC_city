@@ -254,6 +254,11 @@ let component ~(game : Game.t Value.t)
         ~attrs:[ Attr.class_ "section-box" ]
         [
           Node.h3
+            ~attrs:[ Attr.class_ "tips" ]
+            [
+              Node.text "Adjust the tax rate to make money from each PC Citizen";
+            ];
+          Node.h3
             ~attrs:[ Attr.class_ "section-title" ]
             [ Node.text (sprintf "Tax: %.0f%%" tax_rate) ];
           Node.div
@@ -295,6 +300,12 @@ let component ~(game : Game.t Value.t)
           Node.h3
             ~attrs:[ Attr.class_ "section-title" ]
             [ Node.text "Policies" ];
+          Node.h3
+            ~attrs:[ Attr.class_ "tips" ]
+            [
+              Node.text
+                "Hover over each policy to learn more about its effects.";
+            ];
           Node.div
             ~attrs:[ Attr.class_ "policies" ]
             (List.map policies ~f:(fun (label, cost, info) ->

@@ -39,7 +39,7 @@ let high_cost = -500
 let ultra_high_cost = -750
 
 let mandatory_buildings =
-    [ Building.Electricity; Water; Police; Hospital; Fire ]
+  [ Building.Electricity; Water; Police; Hospital; Fire ]
 
 let get_money_change building =
   match building with
@@ -242,9 +242,7 @@ let enact_policy ~policy ~game =
               money = game.money + ultra_high_cost;
             }
       | Disable_Mandatory -> disable_effect new_game
-      | Increase_Occupancy ->
-            increase_occupancy_effect new_game
-            )
+      | Increase_Occupancy -> increase_occupancy_effect new_game)
 
 let fire_event game =
   print_endline "A fire has hit your town!";
@@ -347,12 +345,10 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
   if List.exists g.implemented_policies ~f:(Policy.equal Policy.Clean_Energy)
   then categories := Clean_power_pos :: !categories;
 
-
   (* Greenspace feedback *)
   let greenspace = get_count Greenspace in
-  print_s[%message(greenspace:int)];
-  if greenspace >= 5 then 
-    categories := Greenspace_pos :: !categories
+  print_s [%message (greenspace : int)];
+  if greenspace >= 5 then categories := Greenspace_pos :: !categories
   else categories := Greenspace_neg :: !categories;
 
   (* Grocery store feedback *)
@@ -367,19 +363,19 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
     categories := Low_business_ratio :: !categories;
 
   (* High occupancy feedback *)
-  if List.exists g.implemented_policies ~f:(Policy.equal Policy.Increase_Occupancy) then (
-  if housing > 0 && g.population / housing > 10 then
-    categories := High_occupancy :: !categories);
-  
-  
+  if
+    List.exists g.implemented_policies
+      ~f:(Policy.equal Policy.Increase_Occupancy)
+  then
+    if housing > 0 && g.population / housing > 10 then
+      categories := High_occupancy :: !categories;
+
   (* Tax feedback: assume tax_rate is a float in [0.0, 1.0] *)
-  if Float.(g.tax_rate > 40.) then categories := High_tax :: !categories; print_s[%message(g.tax_rate:float)];
-  
-  print_s[%message (!categories: Public_feedback.feedback_category list)];
+  if Float.(g.tax_rate > 40.) then categories := High_tax :: !categories;
+  print_s [%message (g.tax_rate : float)];
+
+  print_s [%message (!categories : Public_feedback.feedback_category list)];
   !categories
-
-
-(*write expect test*)
 
 (* time passing *)
 let start_day game =

@@ -19,11 +19,11 @@ let component ~(game : Game.t Value.t) =
     and opinion_messages = opinion_messages in
     let open Public_feedback in
     let categories = Game.get_feedback_categories game in
-    match
-      List.find_map categories ~f:(fun cat ->
-          List.random_element (get_feedback_for_category cat))
-    with
-    | Some msg -> set_opinion_messages (msg :: opinion_messages)
+    match List.random_element categories with
+    | Some category -> (
+        match List.random_element (get_feedback_for_category category) with
+        | Some msg -> set_opinion_messages (msg :: opinion_messages)
+        | None -> Effect.Ignore)
     | None -> Effect.Ignore
   in
 
@@ -111,7 +111,7 @@ let component ~(game : Game.t Value.t) =
                    [
                      Node.span
                        ~attrs:[ Attr.class_ "public-label" ]
-                       [ Node.text message ];
+                       [ Node.text message; Node.br (); Node.br () ];
                    ]));
         ];
     ]
