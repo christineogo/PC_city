@@ -363,7 +363,9 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
 
   (* Greenspace feedback *)
   let greenspace = get_count Greenspace in
-  if greenspace >= 5 then categories := Greenspace_pos :: !categories
+  print_s[%message(greenspace:int)];
+  if greenspace >= 5 then 
+    categories := Greenspace_pos :: !categories
   else categories := Greenspace_neg :: !categories;
 
   (* Grocery store feedback *)
@@ -378,9 +380,10 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
     categories := Low_business_ratio :: !categories;
 
   (* High occupancy feedback *)
-  if housing > 10 && g.population / housing > 10 then
-    categories := High_occupancy :: !categories;
-
+  if List.exists g.implemented_policies ~f:(Policy.equal Policy.Increase_Occupancy) then (
+  if housing > 0 && g.population / housing > 10 then
+    categories := High_occupancy :: !categories);
+  print_s[%message (!categories: Public_feedback.feedback_category list)];
   !categories
 
 (*write expect test*)
