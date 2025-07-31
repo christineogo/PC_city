@@ -139,6 +139,16 @@ let component ~(game : Game.t Value.t)
     | None -> set_game game
   in
 
+  let policy_click policy = 
+    match Game.enact_policy ~policy ~game with 
+    | Ok ok_game ->
+      Game.print_game ok_game;
+      set_game ok_game
+    | Error message ->
+      print_endline message;
+      set_error_message (Some message)
+    in
+
   Node.div
     ~attrs:[ Attr.class_ "sidebar" ]
     [
@@ -245,7 +255,7 @@ let component ~(game : Game.t Value.t)
                        ~attrs:
                          [
                            Attr.class_ "policy-enact";
-                           Attr.on_click (fun _ -> Bonsai_web.Effect.Ignore);
+                           Attr.on_click (fun _ -> policy_click (Policy.of_string label));
                          ]
                        [ Node.text "Enact" ];
                    ]));

@@ -185,8 +185,8 @@ let update_stats game =
 (* policies and effects *)
 let enact_policy ~policy ~game =
   match List.mem game.implemented_policies policy ~equal:Policy.equal with 
-  | false -> Error "You have already implemented this policy"
-  | true ->(
+  | true -> Error "You have already implemented this policy"
+  | false ->(
   let new_game = {game with implemented_policies = List.append game.implemented_policies [policy]} in
   (match policy with
   | Policy.Education ->
@@ -232,27 +232,27 @@ let robbery_event game =
   } *)
 
 let get_robbery_risk game =
-  let robbery_risk = 1 in
+  let robbery_risk = 0 in
   if
     List.exists game.implemented_policies ~f:(fun policy ->
         Policy.equal policy Policy.Disable_Mandatory)
-  then robbery_risk * 2
+  then robbery_risk + 1
   else robbery_risk
 
 let get_fire_risk game =
-  let fire_risk = 1 in
+  let fire_risk = 0 in
   if
     List.exists game.implemented_policies ~f:(fun policy ->
         Policy.equal policy Policy.Disable_Mandatory)
-  then fire_risk * 2
+  then fire_risk + 1
   else fire_risk
 
 let get_protest_risk game =
-  let protest_risk = 1 in
+  let protest_risk = 0 in
   if
     List.exists game.implemented_policies ~f:(fun policy ->
         Policy.equal policy Policy.Clean_Energy)
-  then protest_risk * 1
+  then protest_risk + 1
   else protest_risk
 
 let implement_policy game policy =
@@ -286,9 +286,9 @@ let daily_events game =
   let robbery_risk = get_robbery_risk game in
   let fire_risk = get_fire_risk game in
   let protest_risk = get_protest_risk game in
-  if robbery_risk * Random.int 100 > 99 then Some Event.Robbery
-  else if fire_risk * Random.int 100 > 99 then Some Event.Fire
-  else if protest_risk * Random.int 100 > 99 then Some Event.Protest
+  if robbery_risk * Random.int 100 > 95 then Some Event.Robbery
+  else if fire_risk * Random.int 100 > 95 then Some Event.Fire
+  else if protest_risk * Random.int 100 > 95 then Some Event.Protest
   else None
 
 let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
