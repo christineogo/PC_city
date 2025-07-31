@@ -36,7 +36,7 @@ let daily_cost = -50
 let small_cost = -100
 let medium_cost = -250
 let high_cost = -500
-let _ultra_high_cost = -750
+let ultra_high_cost = -750
 
 let get_money_change building =
   match building with
@@ -182,7 +182,30 @@ let update_stats game =
     population = game.population + game.population_rate;
   }
 
+let all_mandatory_placed game = 
+  let mandatory_buildings =
+    [ Building.Electricity; Water; Police; Hospital; Fire ]
+  in
+  let next_mandatory =
+    List.filter mandatory_buildings ~f:(fun item ->
+        not (dup_mandatory game ~building:item))
+  in
+  List.is_empty next_mandatory
+
 (* policies and effects *)
+
+let disable_effect game =
+  if all_mandatory_placed game then 
+    Ok {(update_happy_rate ~g:game
+        ~rate_change:(Int.min (100 - game.happy_rate) 10)) with money = game.money + ultra_high_cost; money_rate = game.money_rate + 250}
+else Error "You must have all mandatory buildings placed before disabling!"
+
+let _increase_occupancy_effect game = 
+  if Map.mem game.building_counts Building.Apartment || Map.mem game.building_counts House then
+    Ok {game with population = Float.to_int(Int.to_float game.population *. 1.2); happiness = max 0 (game.happiness - 10)}
+  else Error "Place a house or apartment to increase occupancy"
+
+
 let enact_policy ~policy ~game =
   match List.mem game.implemented_policies policy ~equal:Policy.equal with 
   | true -> Error "You have already implemented this policy"
@@ -190,18 +213,18 @@ let enact_policy ~policy ~game =
   let new_game = {game with implemented_policies = List.append game.implemented_policies [policy]} in
   (match policy with
   | Policy.Education ->
-      Ok (update_happy_rate ~g:new_game
-        ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
+      Ok {(update_happy_rate ~g:new_game
+        ~rate_change:(Int.min (100 - new_game.happy_rate) 10)) with money = game.money + ultra_high_cost}
   | Clean_Energy ->
-      Ok (update_happy_rate ~g:new_game
-        ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
+      Ok {(update_happy_rate ~g:new_game
+        ~rate_change:(Int.min (100 - new_game.happy_rate) 10)) with money = game.money + ultra_high_cost}
   | Disable_Mandatory ->
-      Ok (update_happy_rate ~g:new_game
-        ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
-  | Increase_Occupancy -> Ok (update_happy_rate ~g:new_game
-        ~rate_change:(Int.max (new_game.happy_rate - 10) 0))
+      disable_effect new_game
+  | Increase_Occupancy -> Ok {(update_happy_rate ~g:new_game
+        ~rate_change:(Int.min (100 - new_game.happy_rate) 10)) with money = game.money + ultra_high_cost}
   )
   )
+
 
 let fire_event game =
   print_endline "A fire has hit your town!";
@@ -375,7 +398,7 @@ let calculate_happiness (game : t) : int =
     (0.4 *. greenspace_score) +. (0.3 *. business_score)
     +. (0.3 *. education_score)
   in
-  Float.to_int (weighted_score *. 100.0)
+  max 0 (Float.to_int ((weighted_score *. 100.0) -. 0.3 *. game.tax_rate))
 
 let tick game =
   print_endline "new day started";
