@@ -246,7 +246,13 @@ let enact_policy ~policy ~game =
 
 let fire_event game =
   print_endline "A fire has hit your town!";
-  game
+  (* let burnable_map = Map.filter game.board ~f:(fun building -> not (List.mem mandatory_buildings building)) in *)
+  {
+        game with
+        happiness = max 0 (game.happiness - 10);
+        money = Float.to_int (Int.to_float game.money *. 0.75);
+      }
+  (* game *)
 (* {
     game with
     population = Float.to_int (Int.to_float game.population *. 0.85);
