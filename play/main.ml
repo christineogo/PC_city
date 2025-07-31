@@ -38,9 +38,11 @@ let component =
          ~attrs:[ Attr.class_ "tutorial-message" ]
          [
            Node.text
-             "You must place your mandatory items first, by selecting the \
-              location grid block where you would like them to automatically \
-              be placed.";
+             "Click on 5 different blocks to place down your mandatory \
+              buildings. \n\
+             \         To buy building, click on a block first, then click \
+              “Buy” to place the building on the block. \n\
+             \ ";
          ])
   in
 
