@@ -21,7 +21,7 @@ let component =
       end)
   in
 
-  let%sub _error_message, set_error_message =
+  let%sub error_message, set_error_message =
     Bonsai.state_opt
       (module struct
         type t = string [@@deriving sexp, equal]
@@ -57,6 +57,9 @@ let component =
     City_planner.component ~game ~set_game ~selected_cell ~set_error_message
   in
 
+  let%sub error_modal = Error_modal.component ~error_message ~set_error_message
+in
+
   let%sub tick_handler =
     let%arr game = game and set_game = set_game in
     set_game (Game.start_day (Result.ok_or_failwith (Game.tick game)))
@@ -75,12 +78,14 @@ let component =
       (Time_ns.Span.of_sec 10.0) tick_handler
   in
 
+
   let%arr title = title
   and tutorial_message = tutorial_message
   and grid = grid
   and right_sidebar = right_sidebar
   and left_sidebar = left_sidebar
-  and set_game = set_game in
+  and set_game = set_game
+  and error_modal = error_modal in
 
   let new_game_on_click (_ev : Dom_html.mouseEvent Js.t) : unit Ui_effect.t =
     let new_game = Game.new_game () in
@@ -104,6 +109,7 @@ let component =
   View.vbox
     [
       title;
+      error_modal;
       button;
       tutorial_message;
       Node.div
