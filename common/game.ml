@@ -182,7 +182,7 @@ let update_stats game =
     population = game.population + game.population_rate;
   }
 
-let all_mandatory_placed game = 
+let all_mandatory_placed game =
   let mandatory_buildings =
     [ Building.Electricity; Water; Police; Hospital; Fire ]
   in
@@ -195,36 +195,67 @@ let all_mandatory_placed game =
 (* policies and effects *)
 
 let disable_effect game =
-  if all_mandatory_placed game then 
-    Ok {(update_happy_rate ~g:game
-        ~rate_change:(Int.min (100 - game.happy_rate) 10)) with money = game.money + ultra_high_cost; money_rate = game.money_rate + 250}
-else Error "You must have all mandatory buildings placed before disabling!"
+  if all_mandatory_placed game then
+    Ok
+      {
+        (update_happy_rate ~g:game
+           ~rate_change:(Int.min (100 - game.happy_rate) 10))
+        with
+        money = game.money + ultra_high_cost;
+        money_rate = game.money_rate + 250;
+      }
+  else Error "You must have all mandatory buildings placed before disabling!"
 
-let _increase_occupancy_effect game = 
-  if Map.mem game.building_counts Building.Apartment || Map.mem game.building_counts House then
-    Ok {game with population = Float.to_int(Int.to_float game.population *. 1.2); happiness = max 0 (game.happiness - 10)}
+let _increase_occupancy_effect game =
+  if
+    Map.mem game.building_counts Building.Apartment
+    || Map.mem game.building_counts House
+  then
+    Ok
+      {
+        game with
+        population = Float.to_int (Int.to_float game.population *. 1.2);
+        happiness = max 0 (game.happiness - 10);
+      }
   else Error "Place a house or apartment to increase occupancy"
 
-
 let enact_policy ~policy ~game =
-  match List.mem game.implemented_policies policy ~equal:Policy.equal with 
+  match List.mem game.implemented_policies policy ~equal:Policy.equal with
   | true -> Error "You have already implemented this policy"
-  | false ->(
-  let new_game = {game with implemented_policies = List.append game.implemented_policies [policy]} in
-  (match policy with
-  | Policy.Education ->
-      Ok {(update_happy_rate ~g:new_game
-        ~rate_change:(Int.min (100 - new_game.happy_rate) 10)) with money = game.money + ultra_high_cost}
-  | Clean_Energy ->
-      Ok {(update_happy_rate ~g:new_game
-        ~rate_change:(Int.min (100 - new_game.happy_rate) 10)) with money = game.money + ultra_high_cost}
-  | Disable_Mandatory ->
-      disable_effect new_game
-  | Increase_Occupancy -> Ok {(update_happy_rate ~g:new_game
-        ~rate_change:(Int.min (100 - new_game.happy_rate) 10)) with money = game.money + ultra_high_cost}
-  )
-  )
-
+  | false -> (
+      let new_game =
+        {
+          game with
+          implemented_policies =
+            List.append game.implemented_policies [ policy ];
+        }
+      in
+      match policy with
+      | Policy.Education ->
+          Ok
+            {
+              (update_happy_rate ~g:new_game
+                 ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
+              with
+              money = game.money + ultra_high_cost;
+            }
+      | Clean_Energy ->
+          Ok
+            {
+              (update_happy_rate ~g:new_game
+                 ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
+              with
+              money = game.money + ultra_high_cost;
+            }
+      | Disable_Mandatory -> disable_effect new_game
+      | Increase_Occupancy ->
+          Ok
+            {
+              (update_happy_rate ~g:new_game
+                 ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
+              with
+              money = game.money + ultra_high_cost;
+            })
 
 let fire_event game =
   print_endline "A fire has hit your town!";
@@ -318,7 +349,7 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
   let get_count b = Map.find g.building_counts b |> Option.value ~default:0 in
   let categories = ref [] in
 
-  (* Check policies *)
+  (* Policy-based feedback *)
   if
     List.exists g.implemented_policies
       ~f:(Policy.equal Policy.Disable_Mandatory)
@@ -327,26 +358,26 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
   if List.exists g.implemented_policies ~f:(Policy.equal Policy.Clean_Energy)
   then categories := Clean_power_pos :: !categories;
 
-  (* Check tax *)
-  if Float.(g.tax_rate > 40.0) then categories := High_tax :: !categories;
+  (* Tax feedback: assume tax_rate is a float in [0.0, 1.0] *)
+  if Float.(g.tax_rate > 0.4) then categories := High_tax :: !categories;
 
-  (* Greenspace *)
+  (* Greenspace feedback *)
   let greenspace = get_count Greenspace in
   if greenspace >= 5 then categories := Greenspace_pos :: !categories
   else categories := Greenspace_neg :: !categories;
 
-  (* Grocery check *)
+  (* Grocery store feedback *)
   if get_count Grocery = 0 then categories := No_grocery :: !categories;
 
-  (* Business ratio *)
+  (* Business ratio feedback *)
   let business = get_count Grocery + get_count Retail in
   let housing = get_count House + get_count Apartment in
   let ratio = Float.of_int business /. Float.of_int (housing + 1) in
-  if Float.(ratio >. 1.2) then categories := High_business_ratio :: !categories
-  else if Float.(ratio <. 0.8) then
+  if Float.(ratio > 1.2) then categories := High_business_ratio :: !categories
+  else if Float.(ratio < 0.8) then
     categories := Low_business_ratio :: !categories;
 
-  (* High occupancy (very dense city) *)
+  (* High occupancy feedback *)
   if housing > 10 && g.population / housing > 10 then
     categories := High_occupancy :: !categories;
 
@@ -398,7 +429,7 @@ let calculate_happiness (game : t) : int =
     (0.4 *. greenspace_score) +. (0.3 *. business_score)
     +. (0.3 *. education_score)
   in
-  max 0 (Float.to_int ((weighted_score *. 100.0) -. 0.3 *. game.tax_rate))
+  max 0 (Float.to_int ((weighted_score *. 100.0) -. (0.3 *. game.tax_rate)))
 
 let tick game =
   print_endline "new day started";

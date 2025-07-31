@@ -65,7 +65,7 @@ let high_tax =
     "Is PC City trying to turn me into a minimalist or what?";
   ]
 
-(*if less than two plots of greenspacew*)
+(*if less than 5 plots of greenspacew*)
 let greenspace_neg =
   [
     "I’d touch grass (go outside) but there’s only concrete out here 🥲";
@@ -78,11 +78,16 @@ let greenspace_pos =
   [
     "Yo, who planted these flowers? PC City lookin’ kinda cute.";
     "Lowkey (kind of), these community gardens are saving my mental health.";
+    "Going to the park makes me so happy! I hope PC City keeps adding \
+     greenspace";
   ]
 
 (*if business/apartments+houses > 1.2 *)
 let high_business_ratio =
-  [ "Why are there more shops than people who actually live here??" ]
+  [
+    "Why are there more shops than people who actually live here??";
+    "All these businesses and not a single place to live LOL";
+  ]
 
 (*if business/apartments+houses < 0.8 *)
 let low_business_ratio =
