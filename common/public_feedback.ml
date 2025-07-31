@@ -97,7 +97,8 @@ let high_business_ratio =
 (*if business/apartments+houses < 0.8 *)
 let low_business_ratio =
   [
-    "Why are there like no stores?";
+    "All these people and there are like no stores? I had to wait in line to \
+     get a toothbrush.";
     "Shopping in PC City is the worst! You have no options.";
   ]
 

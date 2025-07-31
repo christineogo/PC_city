@@ -33,17 +33,19 @@ let component =
       (Node.h1 ~attrs:[ Attr.class_ "title" ] [ Node.text "PC City" ])
   in
   let%sub tutorial_message =
-    Bonsai.const
-      (Node.h3
-         ~attrs:[ Attr.class_ "tutorial-message" ]
-         [
-           Node.text
-             "Click on 5 different blocks to place down your mandatory \
-              buildings. \n\
-             \         To buy building, click on a block first, then click \
-              “Buy” to place the building on the block. \n\
-             \ ";
-         ])
+    let%arr game = game in
+    let message =
+      match game.game_stage with
+      | Stage.Tutorial ->
+          if Game.all_mandatory_placed game then
+            "Great! Now select a block, then click a building's Buy button to \
+             place it. "
+          else
+            "Click on 5 different blocks to place down your mandatory \
+             buildings."
+      | _ -> ""
+    in
+    Node.h3 ~attrs:[ Attr.class_ "tutorial-message" ] [ Node.text message ]
   in
 
   let%sub grid =
@@ -59,6 +61,14 @@ let component =
     let%arr game = game and set_game = set_game in
     set_game (Game.start_day (Result.ok_or_failwith (Game.tick game)))
   in
+  let%sub _ =
+    let%arr game = game and set_game = set_game in
+    match game.game_stage with
+    | Stage.Tutorial when Game.all_mandatory_placed game ->
+        set_game (Game.end_tutorial game)
+    | _ -> Bonsai.Effect.Ignore
+  in
+
   let%sub () =
     Bonsai.Clock.every ~trigger_on_activate:true
       ~when_to_start_next_effect:`Every_multiple_of_period_non_blocking

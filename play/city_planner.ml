@@ -139,15 +139,15 @@ let component ~(game : Game.t Value.t)
     | None -> set_game game
   in
 
-  let policy_click policy = 
-    match Game.enact_policy ~policy ~game with 
+  let policy_click policy =
+    match Game.enact_policy ~policy ~game with
     | Ok ok_game ->
-      Game.print_game ok_game;
-      set_game ok_game
+        Game.print_game ok_game;
+        set_game ok_game
     | Error message ->
-      print_endline message;
-      set_error_message (Some message)
-    in
+        print_endline message;
+        set_error_message (Some message)
+  in
 
   Node.div
     ~attrs:[ Attr.class_ "sidebar" ]
@@ -156,6 +156,13 @@ let component ~(game : Game.t Value.t)
       Node.h2
         ~attrs:[ Attr.class_ "sidebar-title" ]
         [ Node.text "City Planner" ];
+      Node.h3
+        ~attrs:[ Attr.class_ "tips" ]
+        [
+          Node.text
+            "Hover over each building type to view its cost and effect on the \
+             city";
+        ];
       (* Legend/Buy list *)
       Node.div
         ~attrs:[ Attr.class_ "legend" ]
@@ -211,6 +218,76 @@ let component ~(game : Game.t Value.t)
                      ]
                    [ Node.text "Buy" ];
                ]));
+      (* Mandatory services *)
+      Node.div
+        ~attrs:[ Attr.class_ "section-box" ]
+        [
+          Node.h3
+            ~attrs:[ Attr.class_ "section-title" ]
+            [ Node.text "Mandatory" ];
+          Node.div
+            ~attrs:[ Attr.class_ "mandatory" ]
+            (List.map mandatory_services ~f:(fun (color, label, cost) ->
+                 Node.div
+                   ~attrs:[ Attr.class_ "mandatory-item" ]
+                   [
+                     Node.span
+                       ~attrs:
+                         [
+                           Attr.class_ "swatch";
+                           Attr.create "style"
+                             ("display:inline-block;width:16px;height:16px;background:"
+                            ^ color ^ ";margin-right:8px;vertical-align:middle;"
+                             );
+                         ]
+                       [ Node.text "" ];
+                     Node.span
+                       ~attrs:[ Attr.class_ "mandatory-label" ]
+                       [ Node.text label ];
+                     Node.span
+                       ~attrs:[ Attr.class_ "mandatory-cost" ]
+                       [ Node.text ("-" ^ cost) ];
+                   ]));
+        ];
+      (* Tax slider *)
+      Node.div
+        ~attrs:[ Attr.class_ "section-box" ]
+        [
+          Node.h3
+            ~attrs:[ Attr.class_ "section-title" ]
+            [ Node.text (sprintf "Tax: %.0f%%" tax_rate) ];
+          Node.div
+            ~attrs:[ Attr.class_ "slider-container" ]
+            [
+              Node.input
+                ~attrs:
+                  [
+                    Attr.type_ "range";
+                    Attr.min 0.0;
+                    Attr.max 100.0;
+                    Attr.value "0";
+                    Attr.class_ "tax-slider";
+                    Attr.on_input (fun ev _ ->
+                        let open Js_of_ocaml in
+                        let target =
+                          Js.Opt.get ev##.target (fun () -> assert false)
+                        in
+                        let input =
+                          Js.Opt.get (Dom_html.CoerceTo.input target) (fun () ->
+                              assert false)
+                        in
+                        let value_str = Js.to_string input##.value in
+                        match Float.of_string_opt value_str with
+                        | Some new_rate ->
+                            let new_game = { game with tax_rate = new_rate } in
+                            print_s [%message (new_game : Game.t)];
+                            let%bind.Ui_effect () = set_game new_game in
+                            set_tax_rate new_rate
+                        | None -> set_tax_rate tax_rate);
+                  ]
+                ();
+            ];
+        ];
       (* Policies box *)
       Node.div
         ~attrs:[ Attr.class_ "section-box" ]
@@ -255,79 +332,10 @@ let component ~(game : Game.t Value.t)
                        ~attrs:
                          [
                            Attr.class_ "policy-enact";
-                           Attr.on_click (fun _ -> policy_click (Policy.of_string label));
+                           Attr.on_click (fun _ ->
+                               policy_click (Policy.of_string label));
                          ]
                        [ Node.text "Enact" ];
-                   ]));
-        ];
-      (* Tax slider *)
-      Node.div
-        ~attrs:[ Attr.class_ "section-box" ]
-        [
-          Node.h3
-            ~attrs:[ Attr.class_ "section-title" ]
-            [ Node.text (sprintf "Tax: %.0f%%" tax_rate) ];
-          Node.div
-            ~attrs:[ Attr.class_ "slider-container" ]
-            [
-              Node.input
-                ~attrs:
-                  [
-                    Attr.type_ "range";
-                    Attr.min 0.0;
-                    Attr.max 100.0;
-                    Attr.value "0";
-                    Attr.class_ "tax-slider";
-                    Attr.on_input (fun ev _ ->
-                        let open Js_of_ocaml in
-                        let target =
-                          Js.Opt.get ev##.target (fun () -> assert false)
-                        in
-                        let input =
-                          Js.Opt.get (Dom_html.CoerceTo.input target) (fun () ->
-                              assert false)
-                        in
-                        let value_str = Js.to_string input##.value in
-                        match Float.of_string_opt value_str with
-                        | Some new_rate ->
-                            let new_game = { game with tax_rate = new_rate } in
-                            print_s [%message (new_game : Game.t)];
-                            let%bind.Ui_effect () = set_game new_game in
-                            set_tax_rate new_rate
-                        | None -> set_tax_rate tax_rate);
-                  ]
-                ();
-            ];
-        ];
-      (* Mandatory services *)
-      Node.div
-        ~attrs:[ Attr.class_ "section-box" ]
-        [
-          Node.h3
-            ~attrs:[ Attr.class_ "section-title" ]
-            [ Node.text "Mandatory" ];
-          Node.div
-            ~attrs:[ Attr.class_ "mandatory" ]
-            (List.map mandatory_services ~f:(fun (color, label, cost) ->
-                 Node.div
-                   ~attrs:[ Attr.class_ "mandatory-item" ]
-                   [
-                     Node.span
-                       ~attrs:
-                         [
-                           Attr.class_ "swatch";
-                           Attr.create "style"
-                             ("display:inline-block;width:16px;height:16px;background:"
-                            ^ color ^ ";margin-right:8px;vertical-align:middle;"
-                             );
-                         ]
-                       [ Node.text "" ];
-                     Node.span
-                       ~attrs:[ Attr.class_ "mandatory-label" ]
-                       [ Node.text label ];
-                     Node.span
-                       ~attrs:[ Attr.class_ "mandatory-cost" ]
-                       [ Node.text ("-" ^ cost) ];
                    ]));
         ];
     ]
