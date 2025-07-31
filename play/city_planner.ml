@@ -339,14 +339,26 @@ let component ~(game : Game.t Value.t)
                              ]
                            [ Node.text (cost ^ " - " ^ info) ];
                        ];
-                     Node.button
-                       ~attrs:
-                         [
-                           Attr.class_ "policy-enact";
-                           Attr.on_click (fun _ ->
-                               policy_click (Policy.of_string label));
-                         ]
-                       [ Node.text "Enact" ];
+                     (let policy = Policy.of_string label in
+                      let enacted =
+                        List.mem game.implemented_policies policy
+                          ~equal:Policy.equal
+                      in
+
+                      let button_text =
+                        if enacted then "Enacted" else "Enact"
+                      in
+                      let button_class =
+                        if enacted then "policy-enacted" else "policy-enact"
+                      in
+                      let button_click =
+                        if enacted then Attr.on_click (fun _ -> Effect.Ignore)
+                        else Attr.on_click (fun _ -> policy_click policy)
+                      in
+
+                      Node.button
+                        ~attrs:[ Attr.class_ button_class; button_click ]
+                        [ Node.text button_text ]);
                    ]));
         ];
     ]

@@ -81,7 +81,7 @@
 .policies,
 .mandatory,
 .city-stats {
-    margin-top: 1rem;
+    margin-top: 0.5rem;
 }
 
 .legend-item,
@@ -107,7 +107,8 @@
 .tips {
     font-weight: 300;
     font-size: 0.8rem;
-    color: gray
+    color: gray;
+    margin: 0
 }
 
 .legend-buy,
@@ -162,7 +163,7 @@
 }
 
 .public-opinion {
-    height: 500px;
+    height: 800px;
     overflow-y: auto;
 }
 
@@ -207,4 +208,18 @@
 .button:active {
     background-color: #2e9d5e;
     transform: scale(0.98);
+}
+
+.policy-enacted {
+    margin-left: auto;
+    background: transparent;
+    border: none;
+    color: #e63946;
+    cursor: default;
+    font-weight: 600;
+}
+
+.policy-enacted:hover {
+    text-decoration: none;
+    cursor: default;
 }
