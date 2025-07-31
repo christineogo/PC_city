@@ -69,8 +69,12 @@ let high_tax =
 let greenspace_neg =
   [
     "I’d touch grass (go outside) but there’s only concrete out here 🥲";
-    "The squirrels unionized and started charging rent for park benches.";
-    "Finally found a patch of grass… and three people already picnicking on it.";
+    "The squirrels unionized and started charging rent for park benches. We \
+     need more parks";
+    "Someone needs to tell the mayor about the urban heat island effect";
+    "This city is literally just pavement. It is so hot and I am so unhappy \
+     here. ";
+    "My kid just asked me 'what is a tree'";
   ]
 
 (*if more than 5 plots of greenspace*)
@@ -80,6 +84,7 @@ let greenspace_pos =
     "Lowkey (kind of), these community gardens are saving my mental health.";
     "Going to the park makes me so happy! I hope PC City keeps adding \
      greenspace";
+    "The sun is out and everyone is at the park!";
   ]
 
 (*if business/apartments+houses > 1.2 *)
@@ -112,7 +117,7 @@ let get_feedback_for_category category =
   | High_occupancy -> high_occupancy
   | High_tax -> high_tax
   | Greenspace_pos -> greenspace_pos
-  | Greenspace_neg -> greenspace_pos
+  | Greenspace_neg -> greenspace_neg
   | High_business_ratio -> high_business_ratio
   | Low_business_ratio -> low_business_ratio
   | No_grocery -> no_grocery
