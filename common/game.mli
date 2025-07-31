@@ -31,7 +31,7 @@ val update_population_rate : g:t -> rate_change:int-> t
 val update_money_rate : g:t -> rate_change:int -> t
 val end_tutorial : t -> t
 val game_over : t -> t
-val policy_effect : policy:Policy.t -> game:t -> t
+val enact_policy : policy:Policy.t -> game:t -> (t, string) result
 val start_day : t -> t
 val tick : t -> (t, string) result
 

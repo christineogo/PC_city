@@ -91,8 +91,8 @@ let get_population_change building =
   match building with
   | Building.House -> 4
   | Apartment -> 30
-  | School -> 20
-  | Grocery -> 5
+  | School -> 0
+  | Grocery -> 0
   | _ -> 0
 
 let print_game game = print_s [%message (game : t)]
@@ -183,18 +183,25 @@ let update_stats game =
   }
 
 (* policies and effects *)
-let policy_effect ~policy ~game =
-  match policy with
+let enact_policy ~policy ~game =
+  match List.mem game.implemented_policies policy ~equal:Policy.equal with 
+  | false -> Error "You have already implemented this policy"
+  | true ->(
+  let new_game = {game with implemented_policies = List.append game.implemented_policies [policy]} in
+  (match policy with
   | Policy.Education ->
-      update_happy_rate ~g:game
-        ~rate_change:(Int.min (100 - game.happy_rate) 10)
-  | Policy.Clean_Energy ->
-      update_happy_rate ~g:game
-        ~rate_change:(Int.min (100 - game.happy_rate) 10)
-  | Policy.Disable_Mandatory ->
-      update_happy_rate ~g:game
-        ~rate_change:(Int.min (100 - game.happy_rate) 10)
-  | _ -> game
+      Ok (update_happy_rate ~g:new_game
+        ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
+  | Clean_Energy ->
+      Ok (update_happy_rate ~g:new_game
+        ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
+  | Disable_Mandatory ->
+      Ok (update_happy_rate ~g:new_game
+        ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
+  | Increase_Occupancy -> Ok (update_happy_rate ~g:new_game
+        ~rate_change:(Int.max (new_game.happy_rate - 10) 0))
+  )
+  )
 
 let fire_event game =
   print_endline "A fire has hit your town!";
