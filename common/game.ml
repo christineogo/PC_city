@@ -251,28 +251,30 @@ let enact_policy ~policy ~game =
 
 let fire_event game =
   print_endline "A fire has hit your town!";
-  let burnable_map = Map.filter game.board ~f:(fun building -> not (List.mem mandatory_buildings building ~equal:Building.equal)) in
-  match Map.is_empty burnable_map with 
-  |_ ->
-  {
+  let burnable_map =
+    Map.filter game.board ~f:(fun building ->
+        not (List.mem mandatory_buildings building ~equal:Building.equal))
+  in
+  match Map.is_empty burnable_map with
+  | _ ->
+      {
         game with
         happiness = max 0 (game.happiness - 10);
         money = Float.to_int (Int.to_float game.money *. 0.75);
       }
-  (* | false ->
+(* | false ->
     let burnable_locations = Map.to_alist burnable_map in
     let random_location, _ = List.random_element_exn burnable_locations in
     {(Result.ok_or_failwith (remove_building game ~position:random_location)) with
     happiness = max 0 (game.happiness - 10); 
     money = Float.to_int (Int.to_float game.money *. 0.75);} *)
-  (* game *)
+(* game *)
 (* {
     game with
     population = Float.to_int (Int.to_float game.population *. 0.85);
     money = Float.to_int (Int.to_float game.money *. 0.85);
     happiness = Int.max 0 game.happiness - 10;
   } *)
-
 
 let protest_event game =
   print_endline "Your residents are protesting!";
@@ -374,6 +376,8 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
   (* Grocery store feedback *)
   if get_count Grocery = 0 then categories := No_grocery :: !categories;
 
+  if get_count School = 0 then categories := No_schools :: !categories;
+
   (* Business ratio feedback *)
   let business = get_count Grocery + get_count Retail in
   let housing = get_count House + get_count Apartment in
@@ -401,11 +405,12 @@ let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
 let start_day game =
   print_endline "possible event";
   match daily_events game with
-  | Some Event.Robbery -> robbery_event game, Some "A robbery has hit your town!"
-  | Some Event.Fire -> fire_event game, Some "A fire has struck your town"
-  | Some Event.Protest -> protest_event game, Some "Your residents are protesting"
-  | None -> game, None
-
+  | Some Event.Robbery ->
+      (robbery_event game, Some "A robbery has hit your town!")
+  | Some Event.Fire -> (fire_event game, Some "A fire has struck your town")
+  | Some Event.Protest ->
+      (protest_event game, Some "Your residents are protesting")
+  | None -> (game, None)
 
 let calculate_happiness (game : t) : int =
   let get_count b =

@@ -30,17 +30,6 @@ let policies =
        daily cost of maintaining these services in half." );
   ]
 
-let mandatory_services =
-  [
-    ( Building.get_color Electricity,
-      "Electricity",
-      string_of_int daily_cost ^ "/day" );
-    (Building.get_color Water, "Water", string_of_int daily_cost ^ "/day");
-    (Building.get_color Police, "Police", string_of_int daily_cost ^ "/day");
-    (Building.get_color Hospital, "Hospital", string_of_int daily_cost ^ "/day");
-    (Building.get_color Fire, "Fire Station", string_of_int daily_cost ^ "/day");
-  ]
-
 let component ~(game : Game.t Value.t)
     ~(set_game : (Game.t -> unit Bonsai.Effect.t) Value.t)
     ~(selected_cell : (int * int) option Value.t) ~set_error_message =
@@ -54,6 +43,33 @@ let component ~(game : Game.t Value.t)
   and set_error_message = set_error_message
   and tax_rate = tax_rate
   and set_tax_rate = set_tax_rate in
+
+  let { Game.implemented_policies; _ } = game in
+
+  let mandatory_cost =
+    if
+      List.mem implemented_policies Policy.Disable_Mandatory ~equal:Policy.equal
+    then 0
+    else 50
+  in
+
+  let mandatory_services =
+    [
+      ( Building.get_color Electricity,
+        "Electricity",
+        string_of_int mandatory_cost ^ "/day" );
+      (Building.get_color Water, "Water", string_of_int mandatory_cost ^ "/day");
+      ( Building.get_color Police,
+        "Police",
+        string_of_int mandatory_cost ^ "/day" );
+      ( Building.get_color Hospital,
+        "Hospital",
+        string_of_int mandatory_cost ^ "/day" );
+      ( Building.get_color Fire,
+        "Fire Station",
+        string_of_int mandatory_cost ^ "/day" );
+    ]
+  in
 
   let get_building_counts building_type =
     match Map.find game.building_counts (Building.of_string building_type) with
