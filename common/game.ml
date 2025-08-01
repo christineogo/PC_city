@@ -22,8 +22,8 @@ let new_game () =
     board = Position.Map.empty;
     building_counts = Building.Map.empty;
     implemented_policies = [];
-    population = 0;
-    money = 5000;
+    population = 1;
+    money = 2000;
     happiness = 0;
     population_rate = 0;
     money_rate = 0;
@@ -450,6 +450,8 @@ let calculate_happiness (game : t) : int =
   max 0 (Float.to_int ((weighted_score *. 100.0) -. (0.3 *. game.tax_rate)))
 
 let tick game =
+  (* let should_update_happiness =
+  Map.length game in *)
   print_endline "new day started";
   print_s [%message (game.current_day : int)];
   let updated_game = update_stats game in
@@ -457,14 +459,15 @@ let tick game =
     {
       updated_game with
       current_day = updated_game.current_day + 1;
-      happiness = calculate_happiness game;
+      happiness = calculate_happiness updated_game;
     }
   in
   (* if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"
-  else if new_day.money < 0 then Error "Game over! Money has reached 0"
+  else  *)
+    if new_day.money < 0 then Error "Game over! Money has reached 0"
   else if new_day.population < 0 then
     Error "Game over! Population has reached 0"
-  else  *)
+  else 
   Ok new_day
 
 let add_mandatory ~position game =
