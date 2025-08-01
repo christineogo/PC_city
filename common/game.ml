@@ -133,7 +133,9 @@ let place_building t ~position ~building =
   if dup_mandatory t ~building then
     Error "You cannot place multiple mandatory buildings"
   else if Position.in_bounds position then
-    if Map.mem t.board position then Error "already a building here"
+    if Map.mem t.board position then
+      Error
+        "There is already a building here. Try selecting another grid block."
     else
       let board = Map.set t.board ~key:position ~data:building in
       let building_counts =
@@ -143,11 +145,14 @@ let place_building t ~position ~building =
       in
       let new_game = { t with board; building_counts } in
       Ok (update_stats_from_building ~game:new_game ~building)
-  else Error "position is out of bounds"
+  else Error "Position is out of bounds"
 
 let tutorial_placement t ~position ~building =
   if not (List.exists mandatory_buildings ~f:(Building.equal building)) then
-    Error "You can only place mandatory buildings in the tutorial"
+    Error
+      "You can only place mandatory buildings in this part of the tutorial. \
+       Select 5 different blocks to place your electricity, water, police, \
+       hospital, and fire station. "
   else place_building t ~position ~building
 
 let remove_building t ~position =
@@ -211,7 +216,7 @@ let increase_occupancy_effect game =
         population = Float.to_int (Int.to_float game.population *. 1.2);
         happiness = max 0 (game.happiness - 10);
       }
-  else Error "Place a house or apartment to increase occupancy"
+  else Error "Place a house or apartment first to increase occupancy rate."
 
 let enact_policy ~policy ~game =
   match List.mem game.implemented_policies policy ~equal:Policy.equal with
@@ -248,11 +253,11 @@ let fire_event game =
   print_endline "A fire has hit your town!";
   (* let burnable_map = Map.filter game.board ~f:(fun building -> not (List.mem mandatory_buildings building)) in *)
   {
-        game with
-        happiness = max 0 (game.happiness - 10);
-        money = Float.to_int (Int.to_float game.money *. 0.75);
-      }
-  (* game *)
+    game with
+    happiness = max 0 (game.happiness - 10);
+    money = Float.to_int (Int.to_float game.money *. 0.75);
+  }
+(* game *)
 (* {
     game with
     population = Float.to_int (Int.to_float game.population *. 0.85);
