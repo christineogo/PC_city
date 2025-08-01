@@ -39,6 +39,7 @@ let component =
     Bonsai.const
       (Node.h1 ~attrs:[ Attr.class_ "title" ] [ Node.text "PC City" ])
   in
+
   let%sub tutorial_message =
     let%arr game = game in
     let message =
@@ -46,7 +47,7 @@ let component =
       | Stage.Tutorial ->
           if Game.all_mandatory_placed game then
             "Great! Now select a block, then click a building's Buy button to \
-             place it. "
+             place it."
           else
             "Click on 5 different blocks to place down your mandatory \
              buildings."
@@ -59,23 +60,31 @@ let component =
     Grid.component ~game ~set_game ~selected_cell ~set_selected_cell
       ~set_error_message
   in
+
   let%sub right_sidebar = City_result.component ~game in
+
   let%sub left_sidebar =
     City_planner.component ~game ~set_game ~selected_cell ~set_error_message
   in
 
-  let%sub error_modal = Error_modal.component ~error_message ~set_error_message
-in
-
-let%sub disaster_modal = Disaster_modal.component ~disaster_message ~set_disaster_message
-in
+  let%sub error_modal =
+    Error_modal.component ~error_message ~set_error_message
+  in
+  let%sub disaster_modal =
+    Disaster_modal.component ~disaster_message ~set_disaster_message
+  in
 
   let%sub tick_handler =
-    let%arr game = game and set_game = set_game and set_disaster_message = set_disaster_message in
-    let new_game, disaster = Game.start_day (Result.ok_or_failwith (Game.tick game)) in
+    let%arr game = game
+    and set_game = set_game
+    and set_disaster_message = set_disaster_message in
+    let new_game, disaster =
+      Game.start_day (Result.ok_or_failwith (Game.tick game))
+    in
     let%bind.Ui_effect () = set_game new_game in
     set_disaster_message disaster
   in
+
   let%sub _ =
     let%arr game = game and set_game = set_game in
     match game.game_stage with
@@ -90,22 +99,21 @@ in
       (Time_ns.Span.of_sec 10.0) tick_handler
   in
 
+  (* BUTTON DEFINITION HERE *)
+  let%sub button =
+    let%arr game = game and set_game = set_game in
+    let label =
+      match game.game_stage with
+      | Stage.Tutorial -> "Start Game"
+      | _ -> "Restart Game"
+    in
 
-  let%arr title = title
-  and tutorial_message = tutorial_message
-  and grid = grid
-  and right_sidebar = right_sidebar
-  and left_sidebar = left_sidebar
-  and set_game = set_game
-  and disaster_modal = disaster_modal
-  and error_modal = error_modal in
+    let new_game_on_click (_ev : Dom_html.mouseEvent Js.t) : unit Ui_effect.t =
+      let new_game = Game.new_game () in
+      Game.print_game new_game;
+      set_game new_game
+    in
 
-  let new_game_on_click (_ev : Dom_html.mouseEvent Js.t) : unit Ui_effect.t =
-    let new_game = Game.new_game () in
-    Game.print_game new_game;
-    set_game new_game
-  in
-  let button =
     Node.div
       ~attrs:
         [
@@ -115,9 +123,19 @@ in
       [
         Node.button
           ~attrs:[ Attr.class_ "button"; Attr.on_click new_game_on_click ]
-          [ Node.text "Start Game" ];
+          [ Node.text label ];
       ]
   in
+
+  (* FINAL UI *)
+  let%arr title = title
+  and tutorial_message = tutorial_message
+  and grid = grid
+  and right_sidebar = right_sidebar
+  and left_sidebar = left_sidebar
+  and button = button
+  and error_modal = error_modal
+  and disaster_modal = disaster_modal in
 
   View.vbox
     [
@@ -136,4 +154,3 @@ in
     ]
 
 let () = Bonsai_web.Start.start component
-
