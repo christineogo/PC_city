@@ -20,16 +20,16 @@ module Info_modal = struct
             [
               Node.h2
                 [ Node.text "PC City : An Interactive City Simulator Game" ];
-              Node.h3 [ Node.text "Project overview" ];
+              Node.h3 [ Node.text "Overview" ];
               Node.p
                 [
                   Node.text
                     "A city simulator, in which you are playing from birds-eye \
                      view to overlook a city grid. You are tasked with \
-                     managing and building the city. You can add residences \
-                     and businesses. You can also set tax rates to make money. \
-                     The city will have a happiness score calculated based on \
-                     the ratio of businesses to residences, as well as the tax \
+                     managing + building the city. You can add residences and \
+                     businesses. You can also set tax rates to make money. The \
+                     city will have a happiness score calculated based on the \
+                     ratio of businesses to residences, as well as the tax \
                      rate. Your goal is to make a profitable city, while also \
                      ensuring that your city is happy.";
                 ];
@@ -45,9 +45,9 @@ module Info_modal = struct
               Node.p
                 [
                   Node.text
-                    "Calculated based on the number buildings you have placed \
-                     down, money accumulated, and happiness acquired during \
-                     your term as mayor.";
+                    "Calculated based on the number of buildings you have \
+                     placed down during your term as mayor. Try your best to \
+                     expand your city, while maintaining your city stats.";
                 ];
               Node.h4 [ Node.text "Buying buildings:" ];
               Node.p
@@ -55,7 +55,7 @@ module Info_modal = struct
                   Node.text
                     "There are five mandatory buildings that you must place at \
                      the beginning of the game. The tutorial will instruct you \
-                     to do so. They will cost you money to maintain.";
+                     to do so.";
                 ];
               Node.p
                 [
@@ -120,35 +120,42 @@ let component =
       end)
       ~default_model:(Game.new_game ())
   in
-
   let%sub selected_cell, set_selected_cell =
     Bonsai.state_opt
       (module struct
         type t = int * int [@@deriving sexp, equal]
       end)
   in
-
   let%sub error_message, set_error_message =
     Bonsai.state_opt
       (module struct
         type t = string [@@deriving sexp, equal]
       end)
   in
-
   let%sub disaster_message, set_disaster_message =
     Bonsai.state_opt
       (module struct
         type t = string [@@deriving sexp, equal]
       end)
   in
-
   let%sub show_info_modal, set_show_info_modal =
     Bonsai.state (module Bool) ~default_model:false
   in
 
   let%sub title =
-    Bonsai.const
-      (Node.h1 ~attrs:[ Attr.class_ "title" ] [ Node.text "PC City" ])
+    let%arr set_show_info_modal = set_show_info_modal in
+    Node.div
+      ~attrs:[ Attr.class_ "title-container" ]
+      [
+        Node.h1 ~attrs:[ Attr.class_ "title" ] [ Node.text "PC City" ];
+        Node.button
+          ~attrs:
+            [
+              Attr.class_ "info-button";
+              Attr.on_click (fun _ -> set_show_info_modal true);
+            ]
+          [ Node.text "ℹ️" ];
+      ]
   in
 
   let%sub tutorial_message =
@@ -162,7 +169,7 @@ let component =
           else
             "Click on 5 different blocks to place down your mandatory \
              buildings."
-      | _ -> "Overall Score: " ^ string_of_int 0
+      | _ -> "Overall Score: " ^ string_of_int game.score
     in
     Node.h3 ~attrs:[ Attr.class_ "tutorial-message" ] [ Node.text message ]
   in
@@ -171,37 +178,19 @@ let component =
     Grid.component ~game ~set_game ~selected_cell ~set_selected_cell
       ~set_error_message
   in
-
   let%sub right_sidebar = City_result.component ~game in
-
   let%sub left_sidebar =
     City_planner.component ~game ~set_game ~selected_cell ~set_error_message
   in
-
   let%sub error_modal =
     Error_modal.component ~error_message ~set_error_message
   in
-
   let%sub disaster_modal =
     Disaster_modal.component ~disaster_message ~set_disaster_message
   in
-
   let%sub info_modal =
     Info_modal.component ~show:show_info_modal
       ~on_close:(Value.map set_show_info_modal ~f:(fun f -> fun () -> f false))
-  in
-
-  let%sub info_button =
-    let%arr set_show_info_modal = set_show_info_modal in
-    Node.button
-      ~attrs:
-        [
-          Attr.class_ "info-button";
-          Attr.on_click (fun _ -> set_show_info_modal true);
-          Attr.create "style"
-            "position: absolute; top: 1rem; right: 1rem; padding: 0.5rem;";
-        ]
-      [ Node.text "ℹ️" ]
   in
 
   let%sub tick_handler =
@@ -264,14 +253,18 @@ let component =
   and button = button
   and error_modal = error_modal
   and disaster_modal = disaster_modal
-  and info_modal = info_modal
-  and info_button = info_button in
+  and info_modal = info_modal in
 
   View.vbox
     [
-      info_button;
       info_modal;
-      title;
+      Node.div
+        ~attrs:
+          [
+            Attr.create "style"
+              "display: flex; justify-content: center; width: 100%;";
+          ]
+        [ title ];
       error_modal;
       disaster_modal;
       button;

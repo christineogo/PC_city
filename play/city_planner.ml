@@ -4,32 +4,6 @@ open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
 open! Game_strategies_common_lib
 
-let daily_cost = 50
-let small_cost = 100
-let medium_cost = 250
-let high_cost = 500
-let ultra_high_cost = 750
-
-let policies =
-  [
-    ( "Clean Energy",
-      "Cost: " ^ string_of_int ultra_high_cost,
-      "PC City will now use clean energy sources to power the city and reduce \
-       emissions. This includes solar, wind, and nuclear energy sources." );
-    ( "Improve Education",
-      "Cost: " ^ string_of_int ultra_high_cost,
-      "PC City will invest in improving education quality and school \
-       facilities across all schooling levels." );
-    ( "Increase Housing Occupancy",
-      "Cost: " ^ string_of_int high_cost,
-      "PC City will now allow more residents to live in houses and apartments."
-    );
-    ( "Defund Mandatory Services",
-      "Cost: " ^ string_of_int ultra_high_cost,
-      "PC City allocate less money to mandatory services. This will cut the \
-       daily cost of maintaining these services in half." );
-  ]
-
 let component ~(game : Game.t Value.t)
     ~(set_game : (Game.t -> unit Bonsai.Effect.t) Value.t)
     ~(selected_cell : (int * int) option Value.t) ~set_error_message =
@@ -46,11 +20,39 @@ let component ~(game : Game.t Value.t)
 
   let { Game.implemented_policies; _ } = game in
 
+  let daily_cost = abs game.daily_cost in
+  let small_cost = abs game.small_cost in
+  let medium_cost = abs game.medium_cost in
+  let high_cost = abs game.high_cost in
+  let ultra_high_cost = abs game.ultra_high_cost in
+
   let mandatory_cost =
     if
       List.mem implemented_policies Policy.Disable_Mandatory ~equal:Policy.equal
     then 0
-    else 50
+    else daily_cost
+  in
+
+  let policies =
+    [
+      ( "Clean Energy",
+        "Cost: " ^ string_of_int ultra_high_cost,
+        "PC City will now use clean energy sources to power the city and \
+         reduce emissions. This includes solar, wind, and nuclear energy \
+         sources." );
+      ( "Improve Education",
+        "Cost: " ^ string_of_int ultra_high_cost,
+        "PC City will invest in improving education quality and school \
+         facilities across all schooling levels." );
+      ( "Increase Housing Occupancy",
+        "Cost: " ^ string_of_int high_cost,
+        "PC City will now allow more residents to live in houses and \
+         apartments." );
+      ( "Defund Mandatory Services",
+        "Cost: " ^ string_of_int ultra_high_cost,
+        "PC City allocate less money to mandatory services. This will cut the \
+         daily cost of maintaining these services in half." );
+    ]
   in
 
   let mandatory_services =

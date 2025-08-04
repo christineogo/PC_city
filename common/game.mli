@@ -14,6 +14,11 @@ type t = {
   current_day : int;
   tax_rate : float;
   score : int;
+  daily_cost : int;
+  small_cost : int;
+  medium_cost : int;
+  high_cost : int;
+  ultra_high_cost : int;
 }
 [@@deriving sexp, equal]
 
@@ -40,5 +45,4 @@ val implement_policy : t -> Policy.t -> (t, string) result
 val remove_policy : t -> Policy.t -> (t, string) result
 val print_game : t -> unit
 val add_mandatory : position:Position.t -> t -> (t, string) result
-
 val all_mandatory_placed : t -> bool

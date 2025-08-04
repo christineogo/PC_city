@@ -14,10 +14,16 @@ type t = {
   current_day : int;
   tax_rate : float;
   score : int;
+  daily_cost : int;
+  small_cost : int;
+  medium_cost : int;
+  high_cost : int;
+  ultra_high_cost : int;
 }
 [@@deriving sexp, equal]
 
 let base_happiness = 15
+
 let new_game () =
   {
     game_stage = Stage.Tutorial;
@@ -33,63 +39,43 @@ let new_game () =
     current_day = 0;
     tax_rate = 0.0;
     score = 0;
+    daily_cost = -50;
+    small_cost = -100;
+    medium_cost = -250;
+    high_cost = -500;
+    ultra_high_cost = -750;
   }
-
-let daily_cost = -50
-let small_cost = -100
-let medium_cost = -250
-let high_cost = -500
-let ultra_high_cost = -750
 
 let mandatory_buildings =
   [ Building.Electricity; Water; Police; Hospital; Fire ]
 
-let get_money_change building =
+let get_money_change game building =
   match building with
-  | Building.Police ->
-      daily_cost
-      (* (match game.game_stage with 
-      |Stage.Tutorial -> 0
-      |_ -> -10
-      ) *)
-  | Electricity ->
-      daily_cost
-      (* (match game.game_stage with 
-      |Stage.Tutorial -> 0
-      |_ -> -10
-      ) *)
-  | Fire -> daily_cost
+  | Building.Police -> game.daily_cost
+  | Electricity -> game.daily_cost
+  | Fire -> game.daily_cost
   | House -> 0
-  | University -> daily_cost
-  | School -> daily_cost
-  | Grocery -> -small_cost
-  | Retail -> -small_cost
+  | University -> game.daily_cost
+  | School -> game.daily_cost
+  | Grocery -> -game.small_cost
+  | Retail -> -game.small_cost
   | Apartment -> 0
   | Greenspace -> 0
-  | Water ->
-      daily_cost
-      (* (match game.game_stage with 
-      |Stage.Tutorial -> 0
-      |_ -> -10
-      ) *)
-  | Hospital -> daily_cost
-(* (match game.game_stage with 
-      |Stage.Tutorial -> 0
-      |_ -> -10
-      ) *)
+  | Water -> game.daily_cost
+  | Hospital -> game.daily_cost
 
-let building_cost building =
+let building_cost game building =
   match building with
   | Building.Police -> 0
   | Electricity -> 0
   | Fire -> 0
-  | House -> small_cost
-  | University -> high_cost
-  | School -> medium_cost
-  | Grocery -> medium_cost
-  | Retail -> medium_cost
-  | Apartment -> high_cost
-  | Greenspace -> daily_cost
+  | House -> game.small_cost
+  | University -> game.high_cost
+  | School -> game.medium_cost
+  | Grocery -> game.medium_cost
+  | Retail -> game.medium_cost
+  | Apartment -> game.high_cost
+  | Greenspace -> game.daily_cost
   | Water -> 0
   | Hospital -> 0
 
@@ -118,10 +104,10 @@ let update_stats_from_building ~building ~game =
     { game with population = game.population + get_population_change building }
   in
   let building_cost_game =
-    { new_game with money = game.money + building_cost building }
+    { new_game with money = game.money + building_cost game building }
   in
   update_money_rate ~g:building_cost_game
-    ~rate_change:(get_money_change building)
+    ~rate_change:(get_money_change game building)
 
 (* placing structures *)
 let get_building t ~position = Map.find t.board position
@@ -203,7 +189,7 @@ let disable_effect game =
         (update_happy_rate ~g:game
            ~rate_change:(Int.min (100 - game.happy_rate) 10))
         with
-        money = game.money + ultra_high_cost;
+        money = game.money + game.ultra_high_cost;
         money_rate = game.money_rate + 250;
       }
   else Error "You must have all mandatory buildings placed before disabling!"
@@ -239,7 +225,7 @@ let enact_policy ~policy ~game =
               (update_happy_rate ~g:new_game
                  ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
               with
-              money = game.money + ultra_high_cost;
+              money = game.money + game.ultra_high_cost;
             }
       | Clean_Energy ->
           Ok
@@ -247,7 +233,7 @@ let enact_policy ~policy ~game =
               (update_happy_rate ~g:new_game
                  ~rate_change:(Int.min (100 - new_game.happy_rate) 10))
               with
-              money = game.money + ultra_high_cost;
+              money = game.money + game.ultra_high_cost;
             }
       | Disable_Mandatory -> disable_effect new_game
       | Increase_Occupancy -> increase_occupancy_effect new_game)
@@ -280,7 +266,10 @@ let fire_event game =
   } *)
 
 let protest_event game =
-  print_endline "Your residents are protesting!";
+  print_endline
+    "Your residents are protesting! Some people are not a fan of your clean \
+     energy policy. They have decided to leave. Your population will \
+     decrease. ";
   game
 (* {
     game with
@@ -289,7 +278,10 @@ let protest_event game =
   } *)
 
 let robbery_event game =
-  print_endline "Robberies have struck your town!";
+  print_endline
+    "Robberies have struck your town! Defunding mandatory services left PC \
+     City citizens vunerable to such attacks. Your population will decrease. \
+     They are leaving to find somewhere safer to live. ";
   game
 (* {
     game with
@@ -429,8 +421,7 @@ let calculate_happiness (game : t) : int =
   let housing = house + apartment in
   let business = grocery + retail in
   let addition_factor = ref (Int.to_float base_happiness) in
-if business > 5 || housing > 5 then
-  addition_factor := 5.;
+  if business > 5 || housing > 5 then addition_factor := 5.;
 
   (* Greenspace score: maxed when there's 1 greenspace per housing unit *)
   let greenspace_score =
@@ -454,14 +445,27 @@ if business > 5 || housing > 5 then
     (0.4 *. greenspace_score) +. (0.3 *. business_score)
     +. (0.3 *. education_score)
   in
-  min (max 0 (Float.to_int ((weighted_score *. 100.0) -. (0.3 *. game.tax_rate)+. !addition_factor ))) 100
+  min
+    (max 0
+       (Float.to_int
+          ((weighted_score *. 100.0) -. (0.3 *. game.tax_rate)
+         +. !addition_factor)))
+    100
 
+let calculate_score game =
+  Map.fold game.building_counts ~init:0 ~f:(fun ~key:_ ~data:count acc ->
+      acc + count)
 
-let calculate_score game = 
-  Map.fold game.building_counts ~init:0 ~f:(fun ~key:_ ~data:count acc -> acc + count)
-  
-
-
+let increase_costs_by_score (g : t) : t =
+  let multiplier = g.score / 10 in
+  {
+    g with
+    daily_cost = -50 - (5 * multiplier);
+    small_cost = -100 - (10 * multiplier);
+    medium_cost = -250 - (25 * multiplier);
+    high_cost = -500 - (50 * multiplier);
+    ultra_high_cost = -750 - (75 * multiplier);
+  }
 
 let tick game =
   (* let should_update_happiness =
@@ -474,9 +478,10 @@ let tick game =
       updated_game with
       current_day = updated_game.current_day + 1;
       happiness = calculate_happiness updated_game;
-      score = calculate_score updated_game
+      score = calculate_score updated_game;
     }
   in
+  let scaled_game = increase_costs_by_score new_day in
   (* if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"
   else  *)
   if new_day.money < 0 then
@@ -489,7 +494,7 @@ let tick game =
       "Game over! Population has reached 0. It is your job to maintain your \
        population, money, and happiness of PC City. We hope the next mayor is \
        better..."
-  else Ok new_day
+  else Ok scaled_game
 
 let add_mandatory ~position game =
   let next_mandatory =
