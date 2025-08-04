@@ -27,7 +27,6 @@ let component ~(game : Game.t Value.t) =
     | None -> Effect.Ignore
   in
 
-  (* Automatically run inject_opinion_message each tick *)
   let%sub () =
     Bonsai.Clock.every ~trigger_on_activate:true
       ~when_to_start_next_effect:`Every_multiple_of_period_non_blocking
@@ -86,6 +85,11 @@ let component ~(game : Game.t Value.t) =
                              Attr.class_ "stats-label";
                              Attr.create "style" "color: red;";
                            ]
+                       | "Day: " ->
+                           [
+                             Attr.class_ "stats-label";
+                             Attr.title ("Day: " ^ string_of_int value ^ "/60");
+                           ]
                        | _ -> [ Attr.class_ "stats-label" ]
                      in
                      Node.div
@@ -95,7 +99,12 @@ let component ~(game : Game.t Value.t) =
                            ~attrs:[ Attr.class_ "stats-label" ]
                            [ Node.text label ];
                          Node.span ~attrs:value_attrs
-                           [ Node.text (string_of_int value) ];
+                           [
+                             Node.text
+                               (match label with
+                               | "Day: " -> string_of_int value ^ "/60"
+                               | _ -> string_of_int value);
+                           ];
                        ]);
                  [
                    Node.span
