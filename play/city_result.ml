@@ -79,14 +79,22 @@ let component ~(game : Game.t Value.t) =
             (List.concat
                [
                  List.map stats_items ~f:(fun (label, value) ->
+                     let value_attrs =
+                       match label with
+                       | "Money: " when value < 1000 ->
+                           [
+                             Attr.class_ "stats-label";
+                             Attr.create "style" "color: red;";
+                           ]
+                       | _ -> [ Attr.class_ "stats-label" ]
+                     in
                      Node.div
                        ~attrs:[ Attr.class_ "stats-item" ]
                        [
                          Node.span
                            ~attrs:[ Attr.class_ "stats-label" ]
                            [ Node.text label ];
-                         Node.span
-                           ~attrs:[ Attr.class_ "stats-label" ]
+                         Node.span ~attrs:value_attrs
                            [ Node.text (string_of_int value) ];
                        ]);
                  [

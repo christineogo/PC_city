@@ -35,6 +35,10 @@ let component =
       end)
   in
 
+  let%sub show_info_modal, set_show_info_modal =
+    Bonsai.state (module Bool) ~default_model:false
+  in
+
   let%sub title =
     Bonsai.const
       (Node.h1 ~attrs:[ Attr.class_ "title" ] [ Node.text "PC City" ])
@@ -51,7 +55,7 @@ let component =
           else
             "Click on 5 different blocks to place down your mandatory \
              buildings."
-      | _ -> ""
+      | _ -> "Overall Score: " ^ string_of_int 0
     in
     Node.h3 ~attrs:[ Attr.class_ "tutorial-message" ] [ Node.text message ]
   in
@@ -70,19 +74,40 @@ let component =
   let%sub error_modal =
     Error_modal.component ~error_message ~set_error_message
   in
+
   let%sub disaster_modal =
     Disaster_modal.component ~disaster_message ~set_disaster_message
   in
 
+  let%sub info_modal =
+    Info.component ~show:show_info_modal
+      ~on_close:(Value.map set_show_info_modal ~f:(fun f -> fun () -> f false))
+  in
+
+  let%sub info_button =
+    let%arr set_show_info_modal = set_show_info_modal in
+    Node.button
+      ~attrs:
+        [
+          Attr.class_ "info-button";
+          Attr.on_click (fun _ -> set_show_info_modal true);
+          Attr.create "style"
+            "position: absolute; top: 1rem; right: 1rem; padding: 0.5rem;";
+        ]
+      [ Node.text "ℹ️" ]
+  in
+
   let%sub tick_handler =
-    let%arr game = game and set_game = set_game and set_disaster_message = set_disaster_message in
+    let%arr game = game
+    and set_game = set_game
+    and set_disaster_message = set_disaster_message in
     let new_day = Game.tick game in
     match new_day with
-    |Error mes -> set_disaster_message (Some mes)
-    |Ok day ->
-    let new_game, disaster = Game.start_day (day) in
-    let%bind.Ui_effect () = set_game new_game in
-    set_disaster_message disaster
+    | Error mes -> set_disaster_message (Some mes)
+    | Ok day ->
+        let new_game, disaster = Game.start_day day in
+        let%bind.Ui_effect () = set_game new_game in
+        set_disaster_message disaster
   in
 
   let%sub _ =
@@ -99,7 +124,6 @@ let component =
       (Time_ns.Span.of_sec 10.0) tick_handler
   in
 
-  (* BUTTON DEFINITION HERE *)
   let%sub button =
     let%arr game = game and set_game = set_game in
     let label =
@@ -107,13 +131,11 @@ let component =
       | Stage.Tutorial -> "Start Game"
       | _ -> "Restart Game"
     in
-
     let new_game_on_click (_ev : Dom_html.mouseEvent Js.t) : unit Ui_effect.t =
       let new_game = Game.new_game () in
       Game.print_game new_game;
       set_game new_game
     in
-
     Node.div
       ~attrs:
         [
@@ -127,7 +149,6 @@ let component =
       ]
   in
 
-  (* FINAL UI *)
   let%arr title = title
   and tutorial_message = tutorial_message
   and grid = grid
@@ -135,10 +156,14 @@ let component =
   and left_sidebar = left_sidebar
   and button = button
   and error_modal = error_modal
-  and disaster_modal = disaster_modal in
+  and disaster_modal = disaster_modal
+  and info_modal = info_modal
+  and info_button = info_button in
 
   View.vbox
     [
+      info_button;
+      info_modal;
       title;
       error_modal;
       disaster_modal;
