@@ -28,3 +28,5 @@ val all_offsets : (t -> t) list
     (i.e. left, up-left, up, up-right, right, right-down, down, down-left). *)
 
 val create : row:int -> col:int -> t
+
+val get_neighbors : t -> t list

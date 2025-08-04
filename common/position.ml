@@ -10,7 +10,7 @@ include Comparable.Make_binable (T)
 let to_string = Fn.compose Sexp.to_string_hum sexp_of_t
 
 let in_bounds t =
-  let board_length = 100 in
+  let board_length = 15 in
   let open Int.O in
   List.for_all [ t.row; t.column ] ~f:(fun x -> x >= 0 && x < board_length)
 
@@ -26,3 +26,7 @@ let all_offsets =
   ]
 
 let create ~row ~col = { row; column = col }
+
+let get_neighbors position = 
+  let all_neighbors = List.map all_offsets ~f:(fun offset -> offset position) in
+  List.filter ~f:(fun position -> in_bounds position) all_neighbors
