@@ -292,10 +292,24 @@
     transform: scale(0.98);
 }
 
-.info-button {
-    background-color: white;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    font-size: 1.2rem;
-    cursor: pointer;
+.modal {
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    width: 600px;
+    position: relative;
+}
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
