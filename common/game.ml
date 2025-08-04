@@ -494,6 +494,10 @@ let tick game =
       "Game over! Population has reached 0. It is your job to maintain your \
        population, money, and happiness of PC City. We hope the next mayor is \
        better..."
+  else if new_day.current_day >= 60 then
+    Error
+      "Your term has ended. Congrats on making it (surviving) through all 60 \
+       days. Do you think you could do better next time?"
   else Ok scaled_game
 
 let add_mandatory ~position game =

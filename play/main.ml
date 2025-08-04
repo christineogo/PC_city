@@ -197,13 +197,16 @@ let component =
     let%arr game = game
     and set_game = set_game
     and set_disaster_message = set_disaster_message in
-    let new_day = Game.tick game in
-    match new_day with
-    | Error mes -> set_disaster_message (Some mes)
-    | Ok day ->
-        let new_game, disaster = Game.start_day day in
-        let%bind.Ui_effect () = set_game new_game in
-        set_disaster_message disaster
+    match game.game_stage with
+    | Stage.Tutorial -> Bonsai.Effect.Ignore
+    | _ -> (
+        let new_day = Game.tick game in
+        match new_day with
+        | Error mes -> set_disaster_message (Some mes)
+        | Ok day ->
+            let new_game, disaster = Game.start_day day in
+            let%bind.Ui_effect () = set_game new_game in
+            set_disaster_message disaster)
   in
 
   let%sub _ =
