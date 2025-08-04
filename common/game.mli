@@ -13,6 +13,7 @@ type t = {
   happy_rate : int;
   current_day : int;
   tax_rate : float;
+  score : int;
 }
 [@@deriving sexp, equal]
 

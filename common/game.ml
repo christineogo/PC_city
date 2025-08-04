@@ -13,9 +13,11 @@ type t = {
   happy_rate : int;
   current_day : int;
   tax_rate : float;
+  score : int;
 }
 [@@deriving sexp, equal]
 
+let base_happiness = 15
 let new_game () =
   {
     game_stage = Stage.Tutorial;
@@ -24,12 +26,13 @@ let new_game () =
     implemented_policies = [];
     population = 1;
     money = 2000;
-    happiness = 0;
+    happiness = base_happiness;
     population_rate = 0;
     money_rate = 0;
     happy_rate = 0;
     current_day = 0;
     tax_rate = 0.0;
+    score = 0;
   }
 
 let daily_cost = -50
@@ -425,6 +428,10 @@ let calculate_happiness (game : t) : int =
   let university = get_count University in
   let housing = house + apartment in
   let business = grocery + retail in
+  let addition_factor = ref (Int.to_float base_happiness) in
+if business > 5 || housing > 5 then
+  addition_factor := 5.;
+
   (* Greenspace score: maxed when there's 1 greenspace per housing unit *)
   let greenspace_score =
     Float.min 1.0 (Float.of_int greenspace /. Float.of_int (housing + 1))
@@ -433,7 +440,7 @@ let calculate_happiness (game : t) : int =
   let business_ratio = Float.of_int business /. Float.of_int (housing + 1) in
   let business_score =
     if Float.(business_ratio >= 0.4 && business_ratio <= 0.7) then 1.0
-    else Float.max 0.0 (1.0 -. (Float.abs (business_ratio -. 0.55) *. 2.0))
+    else 1.0 -. (Float.abs (business_ratio -. 0.55) *. 2.0)
   in
   (* Education score based on estimated students served *)
   let total_population = game.population in
@@ -447,7 +454,14 @@ let calculate_happiness (game : t) : int =
     (0.4 *. greenspace_score) +. (0.3 *. business_score)
     +. (0.3 *. education_score)
   in
-  max 0 (Float.to_int ((weighted_score *. 100.0) -. (0.3 *. game.tax_rate)))
+  min (max 0 (Float.to_int ((weighted_score *. 100.0) -. (0.3 *. game.tax_rate)+. !addition_factor ))) 100
+
+
+let calculate_score game = 
+  Map.fold game.building_counts ~init:0 ~f:(fun ~key:_ ~data:count acc -> acc + count)
+  
+
+
 
 let tick game =
   (* let should_update_happiness =
@@ -460,6 +474,7 @@ let tick game =
       updated_game with
       current_day = updated_game.current_day + 1;
       happiness = calculate_happiness updated_game;
+      score = calculate_score updated_game
     }
   in
   (* if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"

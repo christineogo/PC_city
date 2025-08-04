@@ -22,8 +22,8 @@ let component ~is_game_over ~on_restart =
               Node.p
                 [
                   Node.text
-                    "It is your job to maintain your population, money, and \
-                     happiness of PC City. We hope the next mayor is better...";
+                    "Congratulations! \
+                     you have reached the end of your term! Your final score is:";
                 ];
               Node.button
                 ~attrs:
