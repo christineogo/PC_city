@@ -23,8 +23,11 @@ let component ~disaster_message ~set_disaster_message =
               Node.h2 [ Node.text "Disaster!" ];
               Node.p [ Node.text msg ];
               Node.button
-                ~attrs:[ Attr.on_click (fun _ -> set_disaster_message None) ]
+                ~attrs:
+                  [
+                    Attr.class_ "modal-close";
+                    Attr.on_click (fun _ -> set_disaster_message None);
+                  ]
                 [ Node.text "Close" ];
             ];
         ]
-

@@ -464,11 +464,17 @@ let tick game =
   in
   (* if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"
   else  *)
-    if new_day.money < 0 then Error "Game over! Money has reached 0"
+  if new_day.money < 0 then
+    Error
+      "Game over! Money has reached 0. It is your job to maintain your \
+       population, money, and happiness of PC City. We hope the next mayor is \
+       better..."
   else if new_day.population < 0 then
-    Error "Game over! Population has reached 0"
-  else 
-  Ok new_day
+    Error
+      "Game over! Population has reached 0. It is your job to maintain your \
+       population, money, and happiness of PC City. We hope the next mayor is \
+       better..."
+  else Ok new_day
 
 let add_mandatory ~position game =
   let next_mandatory =
