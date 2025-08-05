@@ -1,4 +1,8 @@
+open! Bonsai_web
+
 val component :
-  is_game_over:bool Value.t ->
-  on_restart:(unit -> unit Effect.t) ->
-  Vdom.Node.t Computation.t
+  game:Game_strategies_common_lib.Game.t Value.t ->
+  set_game:(Game_strategies_common_lib.Game.t -> unit Effect.t) Value.t ->
+  message:string option Value.t ->
+  on_restart:unit Effect.t Value.t ->
+  Virtual_dom.Vdom.Node.t Computation.t

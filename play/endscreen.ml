@@ -2,16 +2,20 @@ open! Core
 open! Bonsai_web
 open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
-open! Game_strategies_common_lib
+open Game_strategies_common_lib
 
-let component ~_is_game_over ~on_restart ~(game : Game.t Value.t)=
-  let%arr 
-  (* is_game_over = is_game_over and  *)
-  on_restart = on_restart and 
-  game = game in
+let component ~(game : Game.t Value.t)
+    ~(set_game : (Game.t -> unit Effect.t) Value.t)
+    ~(message : string option Value.t) ~(on_restart : unit Effect.t Value.t) :
+    Vdom.Node.t Computation.t =
+  let%arr game = game
+  and _set_game = set_game
+  and message_option = message
+  and on_restart = on_restart in
+
   match game.game_stage with
-  | Stage.Tutorial | Game_continues -> Node.none
-  | Win ->
+  | Stage.Tutorial | Stage.Game_continues -> Node.none
+  | Stage.Win ->
       Node.div
         ~attrs:
           [
@@ -22,28 +26,22 @@ let component ~_is_game_over ~on_restart ~(game : Game.t Value.t)=
             ~attrs:[ Attr.class_ "modal" ]
             [
               Node.h2 [ Node.text "You won!" ];
-              Node.p
-                [
-                  Node.text
-                    "Congratulations! \
-                     you have reached the end of your term! Your final score is:";
-                ];
-                Node.h3
-                [
-                  Node.text
-                    (Int.to_string game.score);
-                ];
+              (* optional custom message *)
+              (match message_option with
+              | Some msg -> Node.p [ Node.text msg ]
+              | None -> Node.none);
+              Node.h3 [ Node.text ("Score: " ^ Int.to_string game.score) ];
               Node.button
                 ~attrs:
                   [
                     Attr.class_ "modal-close";
-                    Attr.on_click (fun _ -> on_restart ());
+                    Attr.on_click (fun _ -> on_restart);
                   ]
                 [ Node.text "Play Again" ];
             ];
         ]
-  |Game_over ->
-    Node.div
+  | Stage.Game_over ->
+      Node.div
         ~attrs:
           [
             Attr.class_ "modal-overlay"; Attr.on_click (fun _ -> Effect.Ignore);
@@ -52,24 +50,17 @@ let component ~_is_game_over ~on_restart ~(game : Game.t Value.t)=
           Node.div
             ~attrs:[ Attr.class_ "modal" ]
             [
-              Node.h2 [ Node.text "You Lost!" ];
-              Node.p
-                [
-                  Node.text
-                    "You lost! \
-                     Hopefully PC city gets a better mayor next time!";
-                ];
-                Node.h3
-                [
-                  Node.text
-                    (Int.to_string game.score);
-                ];
+              Node.h2 [ Node.text "Game Over" ];
+              (match message_option with
+              | Some msg -> Node.p [ Node.text msg ]
+              | None -> Node.none);
+              Node.h3 [ Node.text ("Score: " ^ Int.to_string game.score) ];
               Node.button
                 ~attrs:
                   [
                     Attr.class_ "modal-close";
-                    Attr.on_click (fun _ -> on_restart ());
+                    Attr.on_click (fun _ -> on_restart);
                   ]
-                [ Node.text "Play Again" ];
+                [ Node.text "Try Again" ];
             ];
         ]
