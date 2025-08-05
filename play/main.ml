@@ -208,7 +208,7 @@ let component =
             let%bind.Ui_effect () = set_game game_over_game in
             Bonsai.Effect.Ignore
         | Ok day ->
-            let new_game, disaster = Game.start_day day in
+            let (new_game, _burned_positions), disaster = Game.start_day day in
             let%bind.Ui_effect () = set_game new_game in
             set_disaster_message disaster)
   in
