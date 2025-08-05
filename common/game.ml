@@ -401,10 +401,22 @@ let start_day game =
   print_endline "possible event";
   match daily_events game with
   | Some Event.Robbery ->
-      (robbery_event game, Some "A robbery has hit your town!")
-  | Some Event.Fire -> (fire_event game, Some "A fire has struck your town")
+      ( robbery_event game,
+        Some
+          "Robberies have struck your town! Defunding mandatory services left \
+           PC City citizens vunerable to such attacks. You have lost some \
+           money as well. " )
+  | Some Event.Fire ->
+      ( fire_event game,
+        Some
+          "A fire has struck your town. Unfortunately, your population will \
+           decrease" )
   | Some Event.Protest ->
-      (protest_event game, Some "Your residents are protesting")
+      ( protest_event game,
+        Some
+          "Your residents are protesting! Some people are not a fan of your \
+           clean energy policy. They have decided to leave. Your population \
+           will decrease. " )
   | None -> (game, None)
 
 let calculate_happiness (game : t) : int =
