@@ -4,7 +4,7 @@ open! Core
      row indexes increment downwards.
      column indexes increment rightwards. *)
 type t = { row : int; column : int }
-[@@deriving sexp_of, equal, bin_io, compare]
+[@@deriving sexp, equal, bin_io, compare, hash]
 
 include Comparable.S_binable with type t := t
 

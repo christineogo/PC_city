@@ -1,7 +1,7 @@
 open! Core
 
 module T = struct
-  type t = { row : int; column : int } [@@deriving sexp, equal, bin_io, compare]
+  type t = { row : int; column : int } [@@deriving sexp, equal, bin_io, compare, hash]
 end
 
 include T

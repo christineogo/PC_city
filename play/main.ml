@@ -138,6 +138,14 @@ let component =
         type t = string [@@deriving sexp, equal]
       end)
   in
+
+  let%sub burned_positions, set_burned_positions =
+    Bonsai.state_opt
+      (module struct
+        type t = Position.t list [@@deriving sexp, equal]
+      end)
+  in
+
   let%sub show_info_modal, set_show_info_modal =
     Bonsai.state (module Bool) ~default_model:false
   in
@@ -185,10 +193,7 @@ let component =
   let%sub error_modal =
     Error_modal.component ~error_message ~set_error_message
   in
-  let%sub disaster_modal =
-    Disaster_modal.component ~disaster_message ~set_disaster_message
-  in
-  let%sub end_screen = Endscreen.component ~game ~on_restart in
+  (* let%sub end_screen = Endscreen.component ~game ~on_restart in *)
   let%sub info_modal =
     Info_modal.component ~show:show_info_modal
       ~on_close:(Value.map set_show_info_modal ~f:(fun f -> fun () -> f false))
@@ -197,20 +202,27 @@ let component =
   let%sub tick_handler =
     let%arr game = game
     and set_game = set_game
-    and set_disaster_message = set_disaster_message in
+    and set_disaster_message = set_disaster_message
+    and set_burned_positions = set_burned_positions
+    and _burned_positions = burned_positions in
 
     match game.game_stage with
     | Stage.Tutorial -> Bonsai.Effect.Ignore
     | _ -> (
         match Game.tick game with
         | Error msg ->
+          print_endline msg;
             let game_over_game = Game.game_over game in
             let%bind.Ui_effect () = set_game game_over_game in
             Bonsai.Effect.Ignore
         | Ok day ->
-            let (new_game, _burned_positions), disaster = Game.start_day day in
+            let (new_game, burned_positions), disaster = Game.start_day day in
+            let%bind.Ui_effect () = set_burned_positions burned_positions in
             let%bind.Ui_effect () = set_game new_game in
             set_disaster_message disaster)
+  in
+  let%sub disaster_modal =
+    Disaster_modal.component ~disaster_message ~set_disaster_message ~burned_positions ~game ~set_game ~set_burned_positions
   in
 
   let%sub _ =
@@ -260,7 +272,7 @@ let component =
   and button = button
   and error_modal = error_modal
   and disaster_modal = disaster_modal
-  and end_screen = end_screen
+  (* and end_screen = end_screen *)
   and info_modal = info_modal in
 
   View.vbox
@@ -275,7 +287,7 @@ let component =
         [ title ];
       error_modal;
       disaster_modal;
-      end_screen;
+      (* end_screen; *)
       button;
       tutorial_message;
       Node.div

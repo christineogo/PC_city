@@ -82,7 +82,7 @@ let building_cost game building =
 let get_population_change building =
   match building with
   | Building.House -> 4
-  | Apartment -> 30
+  | Apartment -> 16
   | School -> 0
   | Grocery -> 0
   | _ -> 0
@@ -155,7 +155,12 @@ let remove_building t ~position =
           | Some count when count > 1 -> count - 1
           | Some _ -> 0)
       in
-      Ok { t with board; building_counts }
+      match building with
+      |House -> Ok { t with board; building_counts; population = t.population - 4 }
+      |Apartment -> Ok { t with board; building_counts; population = t.population - 16 }
+      |Retail | Grocery -> Ok { t with board; building_counts; money_rate = t.money_rate + t.small_cost }
+      |School | University-> Ok { t with board; building_counts; money_rate = t.money_rate - t.small_cost}
+      |_ -> Ok { t with board; building_counts }
 
 let end_tutorial (g : t) = { g with game_stage = Stage.Game_continues }
 let game_over (g : t) = { g with game_stage = Stage.Game_over }
@@ -241,6 +246,25 @@ let enact_policy ~policy ~game =
 let burn_buildings positions game=
     List.fold positions ~init:game ~f:(fun acc position -> if not (Map.mem game.board position) then acc else (Result.ok_or_failwith (remove_building acc ~position)))
 
+let bfs ~position ~max_depth=
+let visited = Hash_set.create (module Position) in
+let to_visit = Queue.create () in
+Queue.enqueue to_visit (position,0);
+let rec traverse () =
+match Queue.dequeue to_visit with
+| None -> ()
+| Some (current_node, depth) ->
+if not (Hash_set.mem visited current_node) && depth <= max_depth
+then (
+Hash_set.add visited current_node;
+let adjacent_nodes = Position.get_neighbors current_node in
+List.iter adjacent_nodes ~f:(fun next_node ->
+Queue.enqueue to_visit (next_node, depth + 1)));
+traverse ()
+in
+traverse ();
+Hash_set.to_list visited
+
 let fire_event game =
   print_endline "A fire has hit your town!";
   let burnable_map =
@@ -256,11 +280,16 @@ let fire_event game =
         population = Float.to_int (Int.to_float game.population *. 0.75);
       }, None
 | false ->
+  let max_depth = game.score / 10 + 1 in
     let burnable_locations = Map.to_alist burnable_map in
     let random_location, _ = List.random_element_exn burnable_locations in
     {(Result.ok_or_failwith (remove_building game ~position:random_location)) with
     happiness = max 0 (game.happiness - 10); 
-    money = Float.to_int (Int.to_float game.money *. 0.75);}, Some (Position.get_neighbors random_location)
+    money = Float.to_int (Int.to_float game.money *. 0.75);}, Some (bfs  ~max_depth ~position:random_location)
+
+
+
+  
 (* game *)
 (* {
     game with
@@ -315,7 +344,7 @@ let get_fire_risk game =
   if
     List.exists game.implemented_policies ~f:(fun policy ->
         Policy.equal policy Policy.Disable_Mandatory)
-  then fire_risk + 1
+  then fire_risk + 4
   else fire_risk
 
 let get_protest_risk game =
@@ -352,15 +381,31 @@ let remove_policy game policy =
       }
   else Error "You cannot remove a policy you haven't implemented"
 
-let daily_events game =
+(* let daily_events game =
   (* CR: Might want to make the possible event for that day chosen randomly from the list instead *)
   let robbery_risk = get_robbery_risk game in
   let fire_risk = get_fire_risk game in
   let protest_risk = get_protest_risk game in
   if robbery_risk * Random.int 100 > 95 then Some Event.Robbery
-  else if fire_risk * Random.int 100 > 95 then Some Event.Fire
+  else if fire_risk * Random.int 100 > 40 then Some Event.Fire
   else if protest_risk * Random.int 100 > 95 then Some Event.Protest
+  else None *)
+
+let daily_events game =
+  let robbery_risk = get_robbery_risk game in
+  let fire_risk = get_fire_risk game in
+  let protest_risk = get_protest_risk game in
+
+  let fire_threshold = 98 - (fire_risk * 10) in
+  let robbery_threshold = 98 - (robbery_risk * 10) in
+  let protest_threshold = 98 - (protest_risk * 10) in
+
+  let roll = Random.int 100 in
+  if roll > fire_threshold then Some Event.Fire
+  else if roll > robbery_threshold then Some Event.Robbery
+  else if roll > protest_threshold then Some Event.Protest
   else None
+
 
 let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
   let get_count b = Map.find g.building_counts b |> Option.value ~default:0 in
@@ -507,14 +552,16 @@ let tick game =
     }
   in
   let scaled_game = increase_costs_by_score new_day in
-  (* if new_day.happiness < 0 then Error "Game over! Happiness has reached 0"
-  else  *)
+  if new_day.happiness <= 0 then Error "Game over! Happiness has reached 0. It is your job to maintain your \
+       population, money, and happiness of PC City. We hope the next mayor is \
+       better..."
+  else 
   if new_day.money < 0 then
     Error
       "Game over! Money has reached 0. It is your job to maintain your \
        population, money, and happiness of PC City. We hope the next mayor is \
        better..."
-  else if new_day.population < 0 then
+  else if new_day.population <= 0 then
     Error
       "Game over! Population has reached 0. It is your job to maintain your \
        population, money, and happiness of PC City. We hope the next mayor is \
