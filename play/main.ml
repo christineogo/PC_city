@@ -188,6 +188,7 @@ let component =
   let%sub disaster_modal =
     Disaster_modal.component ~disaster_message ~set_disaster_message
   in
+  let%sub end_screen = Endscreen.component ~game ~on_restart in
   let%sub info_modal =
     Info_modal.component ~show:show_info_modal
       ~on_close:(Value.map set_show_info_modal ~f:(fun f -> fun () -> f false))
@@ -197,12 +198,15 @@ let component =
     let%arr game = game
     and set_game = set_game
     and set_disaster_message = set_disaster_message in
+
     match game.game_stage with
     | Stage.Tutorial -> Bonsai.Effect.Ignore
     | _ -> (
-        let new_day = Game.tick game in
-        match new_day with
-        | Error mes -> set_disaster_message (Some mes)
+        match Game.tick game with
+        | Error msg ->
+            let game_over_game = Game.game_over game in
+            let%bind.Ui_effect () = set_game game_over_game in
+            Bonsai.Effect.Ignore
         | Ok day ->
             let new_game, disaster = Game.start_day day in
             let%bind.Ui_effect () = set_game new_game in
@@ -256,6 +260,7 @@ let component =
   and button = button
   and error_modal = error_modal
   and disaster_modal = disaster_modal
+  and end_screen = end_screen
   and info_modal = info_modal in
 
   View.vbox
@@ -270,6 +275,7 @@ let component =
         [ title ];
       error_modal;
       disaster_modal;
+      end_screen;
       button;
       tutorial_message;
       Node.div
