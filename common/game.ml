@@ -240,6 +240,7 @@ let enact_policy ~policy ~game =
 
 let burn_buildings positions game=
     List.fold positions ~init:game ~f:(fun acc position -> if not (Map.mem game.board position) then acc else (Result.ok_or_failwith (remove_building acc ~position)))
+
 let fire_event game =
   print_endline "A fire has hit your town!";
   let burnable_map =
@@ -247,19 +248,19 @@ let fire_event game =
         not (List.mem mandatory_buildings building ~equal:Building.equal))
   in
   match Map.is_empty burnable_map with
-  | _ ->
+  | true ->
       {
         game with
         happiness = max 0 (game.happiness - 10);
         money = Float.to_int (Int.to_float game.money *. 0.75);
         population = Float.to_int (Int.to_float game.population *. 0.75);
-      }
-(* | false ->
+      }, None
+| false ->
     let burnable_locations = Map.to_alist burnable_map in
     let random_location, _ = List.random_element_exn burnable_locations in
     {(Result.ok_or_failwith (remove_building game ~position:random_location)) with
     happiness = max 0 (game.happiness - 10); 
-    money = Float.to_int (Int.to_float game.money *. 0.75);} *)
+    money = Float.to_int (Int.to_float game.money *. 0.75);}, Some (Position.get_neighbors random_location)
 (* game *)
 (* {
     game with
@@ -277,7 +278,7 @@ let protest_event game =
         game with
         happiness = max 0 (game.happiness - 15);
         population = Float.to_int (Int.to_float game.population *. 0.75);
-      }
+      }, None
 (* {
     game with
     population = game.population - 10;
@@ -293,14 +294,15 @@ let robbery_event game =
         game with
         happiness = max 0 (game.happiness - 10);
         money = Float.to_int (Int.to_float game.money *. 0.6);
-      }
+      }, None
 (* {
     game with
     money = Float.to_int (Int.to_float game.money *. 0.75);
     happiness = Int.max 0 game.happiness - 5;
   } *)
 
-let get_robbery_risk game =
+
+  let get_robbery_risk game =
   let robbery_risk = 0 in
   if
     List.exists game.implemented_policies ~f:(fun policy ->
@@ -428,7 +430,7 @@ let start_day game =
           "Your residents are protesting! Some people are not a fan of your \
            clean energy policy. They have decided to leave. Your population \
            will decrease. " )
-  | None -> (game, None)
+  | None -> (game, None), None
 
 let calculate_happiness (game : t) : int =
   let get_count b =

@@ -38,7 +38,7 @@ val update_money_rate : g:t -> rate_change:int -> t
 val end_tutorial : t -> t
 val game_over : t -> t
 val enact_policy : policy:Policy.t -> game:t -> (t, string) result
-val start_day : t -> t * string option
+val start_day : t -> (t * Position.t list option) * string option
 val get_feedback_categories : t -> Public_feedback.feedback_category list
 val tick : t -> (t, string) result
 val implement_policy : t -> Policy.t -> (t, string) result
@@ -46,3 +46,4 @@ val remove_policy : t -> Policy.t -> (t, string) result
 val print_game : t -> unit
 val add_mandatory : position:Position.t -> t -> (t, string) result
 val all_mandatory_placed : t -> bool
+val burn_buildings : Position.t list -> t -> t
