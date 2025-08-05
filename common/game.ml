@@ -519,8 +519,8 @@ let tick game =
        better..."
   else if new_day.current_day >= 60 then
     Error
-      "Your term has ended. Congrats on making it (surviving) through all 60 \
-       days. Do you think you could do better next time?"
+      "Game over! Your term has ended. Congrats on making it (surviving) \
+       through all 60 days. Do you think you could do better next time?"
   else Ok scaled_game
 
 let add_mandatory ~position game =
