@@ -238,6 +238,8 @@ let enact_policy ~policy ~game =
       | Disable_Mandatory -> disable_effect new_game
       | Increase_Occupancy -> increase_occupancy_effect new_game)
 
+let burn_buildings positions game=
+    List.fold positions ~init:game ~f:(fun acc position -> if not (Map.mem game.board position) then acc else (Result.ok_or_failwith (remove_building acc ~position)))
 let fire_event game =
   print_endline "A fire has hit your town!";
   let burnable_map =
@@ -250,6 +252,7 @@ let fire_event game =
         game with
         happiness = max 0 (game.happiness - 10);
         money = Float.to_int (Int.to_float game.money *. 0.75);
+        population = Float.to_int (Int.to_float game.population *. 0.75);
       }
 (* | false ->
     let burnable_locations = Map.to_alist burnable_map in
@@ -270,7 +273,11 @@ let protest_event game =
     "Your residents are protesting! Some people are not a fan of your clean \
      energy policy. They have decided to leave. Your population will \
      decrease. ";
-  game
+  {
+        game with
+        happiness = max 0 (game.happiness - 15);
+        population = Float.to_int (Int.to_float game.population *. 0.75);
+      }
 (* {
     game with
     population = game.population - 10;
@@ -282,7 +289,11 @@ let robbery_event game =
     "Robberies have struck your town! Defunding mandatory services left PC \
      City citizens vunerable to such attacks. Your population will decrease. \
      They are leaving to find somewhere safer to live. ";
-  game
+  {
+        game with
+        happiness = max 0 (game.happiness - 10);
+        money = Float.to_int (Int.to_float game.money *. 0.6);
+      }
 (* {
     game with
     money = Float.to_int (Int.to_float game.money *. 0.75);
