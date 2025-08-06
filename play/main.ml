@@ -139,12 +139,12 @@ let component =
       end)
   in
 
-   let%sub end_message, set_end_message =
+  let%sub end_message, set_end_message =
     Bonsai.state_opt
       (module struct
         type t = string [@@deriving sexp, equal]
       end)
-    in
+  in
 
   let%sub burned_positions, set_burned_positions =
     Bonsai.state_opt
@@ -191,7 +191,7 @@ let component =
 
   let%sub grid =
     Grid.component ~game ~set_game ~selected_cell ~set_selected_cell
-      ~set_error_message
+      ~set_error_message ~burned_positions
   in
   let%sub right_sidebar = City_result.component ~game in
   let%sub left_sidebar =
@@ -217,15 +217,14 @@ let component =
     and set_game = set_game
     and set_disaster_message = set_disaster_message
     and set_burned_positions = set_burned_positions
-    and _burned_positions = burned_positions
+    (* and _burned_positions = burned_positions *)
     and set_end_message = set_end_message in
-
 
     match game.game_stage with
     | Stage.Tutorial -> Bonsai.Effect.Ignore
     | _ -> (
         match Game.tick game with
-         | Error msg when String.is_prefix ~prefix:"Game over!" msg ->
+        | Error msg when String.is_prefix ~prefix:"Game over!" msg ->
             Bonsai_web.Effect.Many
               [
                 set_game (Game.game_over game);
@@ -233,7 +232,7 @@ let component =
                 set_disaster_message None;
               ]
         | Error msg ->
-          print_endline msg;
+            print_endline msg;
             let game_over_game = Game.game_over game in
             let%bind.Ui_effect () = set_game game_over_game in
             let%bind.Ui_effect () = set_end_message None in
@@ -246,7 +245,8 @@ let component =
             set_disaster_message disaster)
   in
   let%sub disaster_modal =
-    Disaster_modal.component ~disaster_message ~set_disaster_message ~burned_positions ~game ~set_game ~set_burned_positions
+    Disaster_modal.component ~disaster_message ~set_disaster_message
+      ~burned_positions ~game ~set_game ~set_burned_positions
   in
 
   let%sub _ =
@@ -324,4 +324,3 @@ let component =
     ]
 
 let () = Bonsai_web.Start.start component
-
