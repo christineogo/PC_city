@@ -10,6 +10,7 @@ type feedback_category =
   | Low_business_ratio
   | No_grocery
   | No_schools
+  | General
 [@@deriving sexp, equal]
 
 val defund_mandatory : string list

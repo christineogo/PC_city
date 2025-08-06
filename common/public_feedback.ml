@@ -177,6 +177,8 @@ let no_schools =
     "We need education before this city turns into a group project gone wrong.";
   ]
 
+let general = []
+
 let get_feedback_for_category category =
   match category with
   | Defund_mandatory -> defund_mandatory
@@ -190,3 +192,4 @@ let get_feedback_for_category category =
   | Low_business_ratio -> low_business_ratio
   | No_grocery -> no_grocery
   | No_schools -> no_schools
+  | General -> general
