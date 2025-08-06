@@ -19,6 +19,8 @@ type t = {
   medium_cost : int;
   high_cost : int;
   ultra_high_cost : int;
+  flood_queue : Position.t list option;
+  flooded_tiles : Position.t list;
 }
 [@@deriving sexp, equal]
 
@@ -44,6 +46,8 @@ let new_game () =
     medium_cost = -250;
     high_cost = -500;
     ultra_high_cost = -750;
+    flood_queue = None;
+    flooded_tiles = [];
   }
 
 let mandatory_buildings =
@@ -89,6 +93,10 @@ let get_population_change building =
 
 let print_game game = print_s [%message (game : t)]
 
+let empty_board = 
+  List.init 15 ~f:(fun row-> List.init 15 ~f:(fun col -> Position.create ~row ~col))
+  |> List.concat
+
 (* internal state updating *)
 let update_happy_rate ~(g : t) ~(rate_change : int) : t =
   { g with happy_rate = rate_change + g.happy_rate }
@@ -118,7 +126,7 @@ let dup_mandatory t ~building =
   else
     match Map.find t.building_counts building with Some 1 -> true | _ -> false
 
-let place_building t ~position ~building =
+let place_function t ~position ~building =
   if dup_mandatory t ~building then
     Error "You cannot place multiple mandatory buildings"
   else if Position.in_bounds position then
@@ -135,6 +143,17 @@ let place_building t ~position ~building =
       let new_game = { t with board; building_counts } in
       Ok (update_stats_from_building ~game:new_game ~building)
   else Error "Position is out of bounds"
+
+let place_building t ~position ~building = 
+  match t.flood_queue with 
+  |None -> place_function t ~position ~building
+  |Some flood_list -> (if List.mem flood_list position ~equal:Position.equal then Error "You cannot place here! The flood is covering this area" 
+  else place_function t ~position ~building)
+
+  (* match t.flooded_tiles with 
+  |Some flood_positions -> if List.mem flood_positions position ~equal:Position.equal then Error "You cannot place here! The flood is covering this area" 
+  else place_function t ~position ~building
+  |None -> place_function t ~position ~building *)
 
 let tutorial_placement t ~position ~building =
   if not (List.exists mandatory_buildings ~f:(Building.equal building)) then
@@ -287,7 +306,26 @@ let fire_event game =
     happiness = max 0 (game.happiness - 10); 
     money = Float.to_int (Int.to_float game.money *. 0.75);}, Some (bfs  ~max_depth ~position:random_location)
 
+(* let flood_start game = 
+  let empty_squares = List.filter empty_board ~f:(fun position -> not (Map.mem game.board position)) in
+  match List.random_element empty_squares with
+  |Some sqaure -> sqaure
+  |None -> print_endline "No empty squares"; Position.create ~row:0 ~col:0 *)
 
+(* let flood_spaces game = 
+  bfs ~position:(flood_start game) ~max_depth:10 
+  |> List.filter ~f:(fun position -> not (Map.mem game.board position)) *)
+
+let _flood_event_start game =
+  print_endline "Your town is flooding!!!";
+  let updated_game = {
+    game with
+    flood_queue = Some empty_board;
+    money = Float.to_int (Int.to_float game.money *. 0.75);
+    (* Apply flood effects to initial_flood squares *)
+    (* Example: update game.board, happiness, etc. here *)
+  } in
+  updated_game, None
 
   
 (* game *)
@@ -340,11 +378,11 @@ let robbery_event game =
   else robbery_risk
 
 let get_fire_risk game =
-  let fire_risk = 0 in
+  let fire_risk = 0.05 in
   if
     List.exists game.implemented_policies ~f:(fun policy ->
         Policy.equal policy Policy.Disable_Mandatory)
-  then fire_risk + 4
+  then fire_risk +. 4.
   else fire_risk
 
 let get_protest_risk game =
@@ -396,14 +434,19 @@ let daily_events game =
   let fire_risk = get_fire_risk game in
   let protest_risk = get_protest_risk game in
 
-  let fire_threshold = 98 - (fire_risk * 10) in
-  let robbery_threshold = 98 - (robbery_risk * 10) in
-  let protest_threshold = 98 - (protest_risk * 10) in
+  let fire_threshold = 100 - Float.to_int (fire_risk *. 10.) in
+  let robbery_threshold = 100 - (robbery_risk * 10) in
+  let protest_threshold = 100 - (protest_risk * 10) in
+  let flood_threshold = max 70 (100 - (game.score)) in
 
-  let roll = Random.int 100 in
-  if roll > fire_threshold then Some Event.Fire
-  else if roll > robbery_threshold then Some Event.Robbery
-  else if roll > protest_threshold then Some Event.Protest
+  let fire_roll = Random.int 100 in
+  let robbery_roll = Random.int 100 in
+  let protest_roll = Random.int 100 in
+  let flood_roll = Random.int 100 in
+  if fire_roll > fire_threshold then Some Event.Fire
+  else if flood_roll > flood_threshold then Some Event.Flood 
+  else if robbery_roll > robbery_threshold then Some Event.Robbery
+  else if protest_roll > protest_threshold then Some Event.Protest
   else None
 
 
@@ -475,6 +518,9 @@ let start_day game =
           "Your residents are protesting! Some people are not a fan of your \
            clean energy policy. They have decided to leave. Your population \
            will decrease. " )
+  | Some Event.Flood -> (_flood_event_start game, Some
+          "Your town is flooding! \
+           You cannot place any buildings for the duration of this disaster ")
   | None -> (game, None), None
 
 let calculate_happiness (game : t) : int =
@@ -527,7 +573,7 @@ let calculate_score game =
       acc + count)
 
 let increase_costs_by_score (g : t) : t =
-  let multiplier = g.score / 10 in
+  let multiplier = g.score / 5 in
   {
     g with
     daily_cost = -50 - (5 * multiplier);
@@ -566,10 +612,10 @@ let tick game =
       "Game over! Population has reached 0. It is your job to maintain your \
        population, money, and happiness of PC City. We hope the next mayor is \
        better..."
-  else if new_day.current_day >= 60 then
+  else if new_day.current_day >= 45 then
     Error
       "Game over! Your term has ended. Congrats on making it (surviving) \
-       through all 60 days. Do you think you could do better next time?"
+       through all 45 days. Do you think you could do better next time?"
   else Ok scaled_game
 
 let add_mandatory ~position game =

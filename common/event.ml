@@ -1,3 +1,3 @@
-type t = Fire | Protest | Robbery [@@deriving sexp_of]
+type t = Fire | Protest | Robbery | Flood [@@deriving sexp_of]
 
 (* let fire_event *)

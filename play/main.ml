@@ -37,7 +37,7 @@ module Info_modal = struct
               Node.p
                 [
                   Node.text
-                    "Your mayoral term will last 60 days. Here is an overview \
+                    "Your mayoral term will last 45 days. Here is an overview \
                      of the gameplay to ensure you are successful during your \
                      term.";
                 ];
@@ -238,12 +238,38 @@ let component =
             let%bind.Ui_effect () = set_end_message None in
             Bonsai.Effect.Ignore
         | Ok day ->
+          (* let flood_day =
+  (match day.flood_queue with
+  | Some queue when not (List.is_empty queue) ->
+      let todays_flood = List.take queue 10 in
+      let remaining = List.drop queue 10 in
+      let flooded_tiles = day.flooded_tiles @ todays_flood in
+      let updated_board =
+        List.fold_left todays_flood ~init:day.board ~f:(fun board pos ->
+          Map.remove board pos
+        )
+      in
+      {
+        day with
+        board = updated_board;
+        flooded_tiles;
+        flood_queue = if List.is_empty remaining then None else Some remaining;
+        happiness = max 0 (day.happiness - 1); (* Optional penalties *)
+        money = Float.to_int (Float.of_int day.money *. 0.98);
+      }
+  | _ -> day
+) in *)
             let (new_game, burned_positions), disaster = Game.start_day day in
             let%bind.Ui_effect () = set_burned_positions burned_positions in
             let%bind.Ui_effect () = set_end_message None in
             let%bind.Ui_effect () = set_game new_game in
             set_disaster_message disaster)
   in
+let%sub flood_handler =
+    let%arr game = game
+    and set_game = set_game in
+    set_game {game with flood_queue = None}
+in
   let%sub disaster_modal =
     Disaster_modal.component ~disaster_message ~set_disaster_message
       ~burned_positions ~game ~set_game ~set_burned_positions
@@ -261,6 +287,12 @@ let component =
     Bonsai.Clock.every ~trigger_on_activate:true
       ~when_to_start_next_effect:`Every_multiple_of_period_non_blocking
       (Time_ns.Span.of_sec 10.0) tick_handler
+  in
+
+   let%sub () =
+    Bonsai.Clock.every ~trigger_on_activate:true
+      ~when_to_start_next_effect:`Every_multiple_of_period_non_blocking
+      (Time_ns.Span.of_sec 23.0) flood_handler
   in
 
   let%sub button =

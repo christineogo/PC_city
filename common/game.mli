@@ -19,6 +19,9 @@ type t = {
   medium_cost : int;
   high_cost : int;
   ultra_high_cost : int;
+  flood_queue : Position.t list option;
+  flooded_tiles : Position.t list;
+
 }
 [@@deriving sexp, equal]
 

@@ -34,7 +34,7 @@ let component ~show ~on_close =
             Node.p
               [
                 Node.text
-                  "Your mayoral term will last 60 days. Here is an overview of \
+                  "Your mayoral term will last 45 days. Here is an overview of \
                    the gameplay to ensure you are successful during your term.";
               ];
             Node.h4 [ Node.text "Overall Score:" ];
