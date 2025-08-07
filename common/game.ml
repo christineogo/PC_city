@@ -21,6 +21,8 @@ type t = {
   ultra_high_cost : int;
   flood_queue : Position.t list option;
   flooded_tiles : Position.t list;
+  current_goal : Goal.t option;
+  completed_goals : string list;
 }
 [@@deriving sexp, equal]
 
@@ -48,7 +50,37 @@ let new_game () =
     ultra_high_cost = -750;
     flood_queue = None;
     flooded_tiles = [];
+    current_goal =  List.hd Goal.all;
+    completed_goals = [];
   }
+
+let goal_reward (goal: Goal.t) game = 
+  match goal.id with 
+  |"build-fire-station" -> {game with money = game.money + goal.reward}
+  |"reach-500-pop" -> {game with money = game.money + goal.reward}
+  |_ -> game
+
+let goal_is_completed (goal: Goal.t) game = 
+  match goal.id with 
+  |"build-fire-station" -> Map.exists game.board ~f:(fun b -> Building.equal b Building.Fire)
+  |"reach-500-pop" -> game.population >= 500
+  |_ -> false
+
+let collect_reward_function game = 
+  match game.current_goal with 
+  |None -> game
+  |Some goal -> (if (goal_is_completed goal game) then 
+    let updated_game = goal_reward goal game in
+      let new_completed = goal.id :: game.completed_goals in
+      let next_goal =
+        List.find Goal.all ~f:(fun g -> not (List.mem new_completed g.id ~equal:String.equal))
+      in
+      { updated_game with
+        completed_goals = new_completed;
+        current_goal = next_goal;
+      } else game)
+
+
 
 let mandatory_buildings =
   [ Building.Electricity; Water; Police; Hospital; Fire ]

@@ -21,9 +21,12 @@ type t = {
   ultra_high_cost : int;
   flood_queue : Position.t list option;
   flooded_tiles : Position.t list;
-
+  current_goal : Goal.t option;
+  completed_goals : string list;
 }
 [@@deriving sexp, equal]
+
+
 
 val new_game : unit -> t
 
@@ -50,3 +53,4 @@ val print_game : t -> unit
 val add_mandatory : position:Position.t -> t -> (t, string) result
 val all_mandatory_placed : t -> bool
 val burn_buildings : Position.t list -> t -> t
+val collect_reward_function : t -> t
