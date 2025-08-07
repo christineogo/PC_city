@@ -58,12 +58,50 @@ let goal_reward (goal: Goal.t) game =
   match goal.id with 
   |"build-fire-station" -> {game with money = game.money + goal.reward}
   |"reach-500-pop" -> {game with money = game.money + goal.reward}
+  | "build-housing-5" ->
+      {game with money = game.money + goal.reward}
+  | "reach-100-pop" ->
+      {game with money = game.money + goal.reward}
+  | "build-business-3" ->
+      {game with money = game.money + goal.reward}
+  | "earn-2000-money" ->
+     {game with money = game.money + goal.reward}
+  | "implement-any-policy" ->
+      {game with money = game.money + goal.reward}
+  | "build-university" ->
+      {game with money = game.money + goal.reward}
+  | "implement-3-policies" ->
+     {game with money = game.money + goal.reward}
+  | "reach-2000-pop" ->
+      {game with money = game.money + goal.reward}
+  | "smart-city" -> {game with money = game.money + goal.reward}
   |_ -> game
 
 let goal_is_completed (goal: Goal.t) game = 
   match goal.id with 
   |"build-fire-station" -> Map.exists game.board ~f:(fun b -> Building.equal b Building.Fire)
   |"reach-500-pop" -> game.population >= 500
+  | "build-housing-5" ->
+      Map.count game.board ~f:(fun b -> Building.equal b Building.House) >= 5
+  | "reach-100-pop" ->
+      game.population >= 100
+  | "build-business-3" ->
+      Map.count game.board ~f:(fun b -> Building.equal b Retail) >= 3
+  | "earn-2000-money" ->
+      game.money >= 2000
+  | "implement-any-policy" ->
+      not (List.is_empty game.implemented_policies)
+  | "build-university" ->
+      Map.exists game.board ~f:(fun b -> Building.equal b Building.University)
+  | "implement-3-policies" ->
+      List.length game.implemented_policies >= 3
+  | "reach-2000-pop" ->
+      game.population >= 2000
+  | "smart-city" ->
+      List.for_all
+        [ Building.University; Building.Hospital; Building.Police; Building.Fire ]
+        ~f:(fun required ->
+          Map.exists game.board ~f:(fun b -> Building.equal b required))
   |_ -> false
 
 let collect_reward_function game = 
