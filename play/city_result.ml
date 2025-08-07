@@ -141,4 +141,19 @@ let component ~(game : Game.t Value.t) =
                        [ Node.text message; Node.br (); Node.br () ];
                    ]));
         ];
+      Node.div
+        ~attrs:[ Attr.class_ "section-box" ]
+        [
+          Node.h3 ~attrs:[ Attr.class_ "sidebar-title" ] [ Node.text "Goals" ];
+          Node.div
+            ~attrs:[ Attr.class_ "slider-container" ]
+            (List.map opinion_messages ~f:(fun message ->
+                 Node.div
+                   ~attrs:[ Attr.class_ "public-item" ]
+                   [
+                     Node.span
+                       ~attrs:[ Attr.class_ "public-label" ]
+                       [ Node.text message; Node.br (); Node.br () ];
+                   ]));
+        ];
     ]
