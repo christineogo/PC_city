@@ -1,7 +1,6 @@
 type feedback_category =
   | Defund_mandatory
   | Clean_power_pos
-  | Clean_power_neg
   | High_occupancy
   | High_tax
   | Greenspace_pos
@@ -41,24 +40,22 @@ let clean_power_pos =
     "My lungs thank the mayor every morning.";
     "Clean energy is the vibe. I’m charging my phone with vibes now.";
     "I saw a kid plant a tree today. Hope for the future fr.";
-    "The air here feels... crisp. Like sparkling water levels of clean.";
+    "The air here feels... crisp. Like sparkling water levels of clean. Loving \
+     the clean energy policy";
     "We’re so green I think we unlocked Earth 2.";
     "Eco-friendly and aesthetic? Go PC City!";
-    "Green is the new black. PC City on that wave.";
-  ]
-
-let clean_power_neg =
-  [
-    "This nuclear powerplant got me cheesed! What if it explodes?";
-    "If I see one more documentary about green living I’m moving to the woods.";
-    "Why my electric bill looking THICKER now?!";
+    "Green is the new black. PC City on that wave. #cleanenergy";
+    "This nuclear powerplant got me cheesed! Who approved this clean energy \
+     policy. What if it explodes? #NotInMyBackyard";
+    "Why my electric bill looking THICKER now?! Clean energy ain't cheap...";
     "These solar panels are great... until it's cloudy for 3 days.";
-    "I swear my lights flicker every time someone sneezes.";
+    "I swear my lights flicker every time someone sneezes. We were not ready \
+     to switch to clean energy";
     "The wind turbine's louder than my neighbor's lawn mower.";
     "Eco this, eco that — I just want reliable power.";
     "Charging my car takes longer than my commute!";
-    "Did they power the city with vibes? Because my fridge just died.";
-    "Where’s the sun when you need it?";
+    "Did they power the city with 'clean' vibes? Because my fridge just died.";
+    "Where’s the sun when you need it? We arent getting enough solar energy";
   ]
 
 let high_occupancy =
@@ -177,13 +174,10 @@ let no_schools =
     "We need education before this city turns into a group project gone wrong.";
   ]
 
-let general = []
-
 let get_feedback_for_category category =
   match category with
   | Defund_mandatory -> defund_mandatory
   | Clean_power_pos -> clean_power_pos
-  | Clean_power_neg -> clean_power_neg
   | High_occupancy -> high_occupancy
   | High_tax -> high_tax
   | Greenspace_pos -> greenspace_pos
@@ -192,4 +186,3 @@ let get_feedback_for_category category =
   | Low_business_ratio -> low_business_ratio
   | No_grocery -> no_grocery
   | No_schools -> no_schools
-  | General -> general

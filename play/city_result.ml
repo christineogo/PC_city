@@ -17,14 +17,17 @@ let component ~(game : Game.t Value.t) =
     let%arr game = game
     and set_opinion_messages = set_opinion_messages
     and opinion_messages = opinion_messages in
-    let open Public_feedback in
-    let categories = Game.get_feedback_categories game in
-    match List.random_element categories with
-    | Some category -> (
-        match List.random_element (get_feedback_for_category category) with
-        | Some msg -> set_opinion_messages (msg :: opinion_messages)
+    match game.game_stage with
+    | Stage.Tutorial -> Effect.Ignore
+    | _ -> (
+        let open Public_feedback in
+        let categories = Game.get_feedback_categories game in
+        match List.random_element categories with
+        | Some category -> (
+            match List.random_element (get_feedback_for_category category) with
+            | Some msg -> set_opinion_messages (msg :: opinion_messages)
+            | None -> Effect.Ignore)
         | None -> Effect.Ignore)
-    | None -> Effect.Ignore
   in
 
   let%sub () =

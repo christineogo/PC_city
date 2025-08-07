@@ -54,9 +54,13 @@ let component ~game ~set_game ~selected_cell ~set_selected_cell
       match building_opt with
       | Some building -> Building.get_color building
       (* | None -> "#D3D3D3" *)
-       |None -> (match game.flood_queue with 
-      |Some flood_queue -> if List.mem flood_queue position ~equal:Position.equal then "#00008B" else "#D3D3D3"
-      |None ->"#D3D3D3")
+      | None -> (
+          match game.flood_queue with
+          | Some flood_queue ->
+              if List.mem flood_queue position ~equal:Position.equal then
+                "#00008B"
+              else "#D3D3D3"
+          | None -> "#D3D3D3")
     in
 
     let fire_icon =
