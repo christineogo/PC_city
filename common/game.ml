@@ -68,17 +68,17 @@ let goal_is_completed (goal: Goal.t) game =
 
 let collect_reward_function game = 
   match game.current_goal with 
-  |None -> game
+  |None -> Ok game
   |Some goal -> (if (goal_is_completed goal game) then 
     let updated_game = goal_reward goal game in
       let new_completed = goal.id :: game.completed_goals in
       let next_goal =
         List.find Goal.all ~f:(fun g -> not (List.mem new_completed g.id ~equal:String.equal))
       in
-      { updated_game with
+      Ok { updated_game with
         completed_goals = new_completed;
         current_goal = next_goal;
-      } else game)
+      } else Error "You cannot claim a goal until you have completed it!")
 
 
 

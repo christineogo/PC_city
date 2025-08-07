@@ -51,5 +51,5 @@ val print_game : t -> unit
 val add_mandatory : position:Position.t -> t -> (t, string) result
 val all_mandatory_placed : t -> bool
 val burn_buildings : Position.t list -> t -> t
-val collect_reward_function : t -> t
+val collect_reward_function : t -> (t, string) result
 val goal_is_completed : Goal.t -> t -> bool

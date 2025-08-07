@@ -86,7 +86,7 @@ let component =
     Grid.component ~game ~set_game ~selected_cell ~set_selected_cell
       ~set_error_message ~burned_positions
   in
-  let%sub right_sidebar = City_result.component ~game ~set_game in
+  let%sub right_sidebar = City_result.component ~game ~set_game ~set_error_message in
   let%sub left_sidebar =
     City_planner.component ~game ~set_game ~selected_cell ~set_error_message
   in
