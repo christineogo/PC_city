@@ -205,7 +205,10 @@ let component ~(game : Game.t Value.t)
                    [
                      Node.span
                        ~attrs:[ Attr.class_ "legend-label" ]
-                       [ Node.text label ];
+                       [ Node.text (label ^ "\t") ];
+                     Node.span
+                       ~attrs:[ Attr.class_ "tips" ]
+                       [ Node.text ("\t" ^ cost) ];
                      Node.span
                        ~attrs:
                          [

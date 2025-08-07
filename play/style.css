@@ -148,7 +148,7 @@ body {
 .mandatory-item,
 .stats-item {
     display: flex;
-    align-items: center;
+    align-items: left;
     margin-bottom: 0.5rem;
 }
 
