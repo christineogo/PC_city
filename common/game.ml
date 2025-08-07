@@ -263,8 +263,10 @@ let enact_policy ~policy ~game =
       | Increase_Occupancy -> increase_occupancy_effect new_game)
 
 let burn_buildings positions game=
-    List.fold positions ~init:game ~f:(fun acc position -> if not (Map.mem game.board position) || 
-      List.mem mandatory_buildings (Map.find_exn game.board position) ~equal:Building.equal then acc else (Result.ok_or_failwith (remove_building acc ~position)))
+    List.fold positions ~init:game ~f:(fun acc position -> 
+      match Map.find game.board position with
+      |Some building -> if List.mem mandatory_buildings building ~equal:Building.equal then acc else (Result.ok_or_failwith (remove_building acc ~position))
+      |None -> acc )
 
 let bfs ~position ~max_depth=
 let visited = Hash_set.create (module Position) in
@@ -300,10 +302,15 @@ let fire_event game =
         population = Float.to_int (Int.to_float game.population *. 0.75);
       }, None
 | false ->
-  let max_depth = game.score / 10 + 1 in
+  let max_depth = min 2 (game.score / 30 + 1) in
     let burnable_locations = Map.to_alist burnable_map in
     let random_location, _ = List.random_element_exn burnable_locations in
-    let burned_locations = List.filter (bfs  ~max_depth ~position:random_location) ~f:(fun location -> not (List.mem mandatory_buildings (Map.find_exn game.board location) ~equal:Building.equal)) in
+    let burned_locations = List.filter (bfs  ~max_depth ~position:random_location) ~f:(fun location -> 
+      match Map.find game.board location with 
+      |None -> false
+      |Some building -> not (List.mem mandatory_buildings building ~equal:Building.equal)
+      (* not (List.mem mandatory_buildings (Map.find_exn game.board location) ~equal:Building.equal) *)
+      ) in
     {(Result.ok_or_failwith (remove_building game ~position:random_location)) with
     happiness = max 0 (game.happiness - 10); 
     money = Float.to_int (Int.to_float game.money *. 0.75);}, Some burned_locations
@@ -372,11 +379,11 @@ let robbery_event game =
 
 
   let get_robbery_risk game =
-  let robbery_risk = 0 in
+  let robbery_risk = 0. in
   if
     List.exists game.implemented_policies ~f:(fun policy ->
         Policy.equal policy Policy.Disable_Mandatory)
-  then robbery_risk + 1
+  then robbery_risk +. 0.5
   else robbery_risk
 
 let get_fire_risk game =
@@ -384,7 +391,7 @@ let get_fire_risk game =
   if
     List.exists game.implemented_policies ~f:(fun policy ->
         Policy.equal policy Policy.Disable_Mandatory)
-  then fire_risk +. 0.5
+  then fire_risk +. 0.6
   else fire_risk
 
 let get_protest_risk game =
@@ -437,7 +444,7 @@ let daily_events game =
   let protest_risk = get_protest_risk game in
 
   let fire_threshold = 100 - Float.to_int (fire_risk *. 10.) in
-  let robbery_threshold = 100 - (robbery_risk * 10) in
+  let robbery_threshold = 100 - Float.to_int (robbery_risk *. 10.) in
   let protest_threshold = 100 - (protest_risk * 10) in
   let flood_threshold = max 80 (100 - (game.score)/2) in
 
