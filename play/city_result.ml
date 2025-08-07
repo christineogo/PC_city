@@ -5,7 +5,7 @@ open! Virtual_dom.Vdom
 open! Game_strategies_common_lib
 
 let component ~(game : Game.t Value.t)
-    ~(set_game : (Game.t -> unit Bonsai.Effect.t) Value.t) ~set_error_message=
+    ~(set_game : (Game.t -> unit Bonsai.Effect.t) Value.t) ~set_error_message =
   let%sub opinion_messages, set_opinion_messages =
     Bonsai.state
       (module struct
@@ -15,7 +15,7 @@ let component ~(game : Game.t Value.t)
   in
 
   let%sub inject_opinion_message =
-  let%arr game = game
+    let%arr game = game
     and set_opinion_messages = set_opinion_messages
     and opinion_messages = opinion_messages in
     match game.game_stage with
@@ -37,7 +37,10 @@ let component ~(game : Game.t Value.t)
       (Time_ns.Span.of_sec 10.0) inject_opinion_message
   in
 
-  let%arr game = game and opinion_messages = opinion_messages and set_game = set_game and set_error_message = set_error_message in
+  let%arr game = game
+  and opinion_messages = opinion_messages
+  and set_game = set_game
+  and set_error_message = set_error_message in
   let stats_items =
     [
       ("Population: ", game.population);
@@ -157,20 +160,21 @@ let component ~(game : Game.t Value.t)
                     [
                       Node.span
                         [
-                          Node.text
-                            (goal.description ^ " — Reward: "
-                           ^ string_of_int goal.reward);
+                          Node.p [ Node.text goal.description ];
+                          Node.p
+                            [
+                              Node.text ("Reward: " ^ string_of_int goal.reward);
+                            ];
                         ];
                       Node.button
                         ~attrs:
                           [
-                            Attr.class_ "button";
+                            Attr.class_ "reward-button";
                             Attr.on_click (fun _ ->
                                 (* let%bind.Ui_effect () =   *)
-                                match (Game.collect_reward_function game) with 
-                                |Ok new_game -> set_game new_game
-                                |Error msg -> set_error_message (Some msg)
-                                );
+                                match Game.collect_reward_function game with
+                                | Ok new_game -> set_game new_game
+                                | Error msg -> set_error_message (Some msg));
                           ]
                         [ Node.text "Claim Reward" ];
                     ]

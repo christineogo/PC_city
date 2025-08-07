@@ -259,12 +259,28 @@ body {
     width: 150px;
 }
 
-.button:hover {
+.reward-button {
+    padding: 0.1rem 0.8rem;
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: white;
+    background-color: #3c7;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    width: auto;
+}
+
+.button:hover,
+.reward-button {
     background-color: #36b36e;
     transform: translateY(-1px);
 }
 
-.button:active {
+.button:active,
+.reward-button {
     background-color: #2e9d5e;
     transform: scale(0.98);
 }
