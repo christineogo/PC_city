@@ -4,7 +4,8 @@ open! Bonsai.Let_syntax
 open! Virtual_dom.Vdom
 open! Game_strategies_common_lib
 
-let component ~(game : Game.t Value.t) =
+let component ~(game : Game.t Value.t)
+    ~(set_game : (Game.t -> unit Bonsai.Effect.t) Value.t) =
   let%sub opinion_messages, set_opinion_messages =
     Bonsai.state
       (module struct
@@ -16,7 +17,8 @@ let component ~(game : Game.t Value.t) =
   let%sub inject_opinion_message =
     let%arr game = game
     and set_opinion_messages = set_opinion_messages
-    and opinion_messages = opinion_messages in
+    and opinion_messages = opinion_messages
+    and set_game = set_game in
     match game.game_stage with
     | Stage.Tutorial -> Effect.Ignore
     | _ -> (
@@ -144,16 +146,33 @@ let component ~(game : Game.t Value.t) =
       Node.div
         ~attrs:[ Attr.class_ "section-box" ]
         [
-          Node.h3 ~attrs:[ Attr.class_ "sidebar-title" ] [ Node.text "Goals" ];
+          Node.h3
+            ~attrs:[ Attr.class_ "sidebar-title" ]
+            [ Node.text "Current Goal" ];
           Node.div
             ~attrs:[ Attr.class_ "slider-container" ]
-            (List.map opinion_messages ~f:(fun message ->
-                 Node.div
-                   ~attrs:[ Attr.class_ "public-item" ]
-                   [
-                     Node.span
-                       ~attrs:[ Attr.class_ "public-label" ]
-                       [ Node.text message; Node.br (); Node.br () ];
-                   ]));
+            [
+              (match game.current_goal with
+              | Some goal ->
+                  Node.div
+                    [
+                      Node.span
+                        [
+                          Node.text
+                            (goal.description ^ " — Reward: "
+                           ^ string_of_int goal.reward);
+                        ];
+                      Node.button
+                        ~attrs:
+                          [
+                            Attr.class_ "button";
+                            Attr.on_click (fun _ ->
+                                (* let%bind.Ui_effect () =   *)
+                                set_game (Game.collect_reward_function game));
+                          ]
+                        [ Node.text "Claim Reward" ];
+                    ]
+              | None -> Node.text "All goals completed!");
+            ];
         ];
     ]
