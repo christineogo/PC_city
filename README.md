@@ -7,7 +7,7 @@ A city simulator, in which you are playing from birds-eye view to overlook a cit
 
 ## Gameplay
 
-Your mayoral term will last 45 days. Here is an overview of the gameplay to ensure you are successful during your term. 
+Your mayoral term will last 30 days. Here is an overview of the gameplay to ensure you are successful during your term. 
 #### Overall Score: 
 Calculated based on the number buildings you have placed down, money accumulated, and happiness acquired during your term as mayor. Try your best to expand your city, while maintaining your city stats.
 #### Buying buildings: 
