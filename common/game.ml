@@ -187,12 +187,12 @@ let game_over (g : t) = { g with game_stage = Stage.Game_over }
 let update_stats game =
   print_s
     [%message
-      (Float.to_int (game.tax_rate *. Int.to_float game.population) : int)];
+      (Float.to_int (game.tax_rate *. log (1. +. Int.to_float game.population)); : int)];
   {
     game with
     money =
       game.money + game.money_rate
-      + Float.to_int (game.tax_rate *. Int.to_float game.population /. 10.);
+      + Float.to_int (game.tax_rate *. sqrt (log (1. +. Int.to_float game.population)));
     happiness = Int.min 100 (game.happiness + game.happy_rate);
     population = game.population + game.population_rate;
   }
@@ -263,7 +263,8 @@ let enact_policy ~policy ~game =
       | Increase_Occupancy -> increase_occupancy_effect new_game)
 
 let burn_buildings positions game=
-    List.fold positions ~init:game ~f:(fun acc position -> if not (Map.mem game.board position) then acc else (Result.ok_or_failwith (remove_building acc ~position)))
+    List.fold positions ~init:game ~f:(fun acc position -> if not (Map.mem game.board position) || 
+      List.mem mandatory_buildings (Map.find_exn game.board position) ~equal:Building.equal then acc else (Result.ok_or_failwith (remove_building acc ~position)))
 
 let bfs ~position ~max_depth=
 let visited = Hash_set.create (module Position) in
@@ -302,9 +303,10 @@ let fire_event game =
   let max_depth = game.score / 10 + 1 in
     let burnable_locations = Map.to_alist burnable_map in
     let random_location, _ = List.random_element_exn burnable_locations in
+    let burned_locations = List.filter (bfs  ~max_depth ~position:random_location) ~f:(fun location -> not (List.mem mandatory_buildings (Map.find_exn game.board location) ~equal:Building.equal)) in
     {(Result.ok_or_failwith (remove_building game ~position:random_location)) with
     happiness = max 0 (game.happiness - 10); 
-    money = Float.to_int (Int.to_float game.money *. 0.75);}, Some (bfs  ~max_depth ~position:random_location)
+    money = Float.to_int (Int.to_float game.money *. 0.75);}, Some burned_locations
 
 (* let flood_start game = 
   let empty_squares = List.filter empty_board ~f:(fun position -> not (Map.mem game.board position)) in
@@ -360,7 +362,7 @@ let robbery_event game =
   {
         game with
         happiness = max 0 (game.happiness - 10);
-        money = Float.to_int (Int.to_float game.money *. 0.6);
+        money = Float.to_int (Int.to_float game.money *. 0.4);
       }, None
 (* {
     game with
@@ -378,11 +380,11 @@ let robbery_event game =
   else robbery_risk
 
 let get_fire_risk game =
-  let fire_risk = 0.05 in
+  let fire_risk = 0.1 in
   if
     List.exists game.implemented_policies ~f:(fun policy ->
         Policy.equal policy Policy.Disable_Mandatory)
-  then fire_risk +. 4.
+  then fire_risk +. 0.5
   else fire_risk
 
 let get_protest_risk game =
@@ -437,7 +439,7 @@ let daily_events game =
   let fire_threshold = 100 - Float.to_int (fire_risk *. 10.) in
   let robbery_threshold = 100 - (robbery_risk * 10) in
   let protest_threshold = 100 - (protest_risk * 10) in
-  let flood_threshold = max 70 (100 - (game.score)) in
+  let flood_threshold = max 80 (100 - (game.score)/2) in
 
   let fire_roll = Random.int 100 in
   let robbery_roll = Random.int 100 in
@@ -569,8 +571,9 @@ let calculate_happiness (game : t) : int =
     100
 
 let calculate_score game =
-  Map.fold game.building_counts ~init:0 ~f:(fun ~key:_ ~data:count acc ->
-      acc + count)
+  Map.fold game.building_counts ~init:0 ~f:(fun ~key ~data:count acc ->
+      if Building.equal key Building.Greenspace then acc
+    else acc + (count * - (building_cost game key)/100 ))
 
 let increase_costs_by_score (g : t) : t =
   let multiplier = g.score / 5 in
@@ -580,7 +583,7 @@ let increase_costs_by_score (g : t) : t =
     small_cost = -100 - (10 * multiplier);
     medium_cost = -250 - (25 * multiplier);
     high_cost = -500 - (50 * multiplier);
-    ultra_high_cost = -750 - (75 * multiplier);
+    ultra_high_cost = -750 - (60 * multiplier);
   }
 
 let tick game =
@@ -612,10 +615,10 @@ let tick game =
       "Game over! Population has reached 0. It is your job to maintain your \
        population, money, and happiness of PC City. We hope the next mayor is \
        better..."
-  else if new_day.current_day >= 45 then
+  else if new_day.current_day >= 30 then
     Error
       "Game over! Your term has ended. Congrats on making it (surviving) \
-       through all 45 days. Do you think you could do better next time?"
+       through all 30 days. Do you think you could do better next time?"
   else Ok scaled_game
 
 let add_mandatory ~position game =

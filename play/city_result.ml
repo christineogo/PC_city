@@ -91,7 +91,7 @@ let component ~(game : Game.t Value.t) =
                        | "Day: " ->
                            [
                              Attr.class_ "stats-label";
-                             Attr.title ("Day: " ^ string_of_int value ^ "/45");
+                             Attr.title ("Day: " ^ string_of_int value ^ "/30");
                            ]
                        | _ -> [ Attr.class_ "stats-label" ]
                      in
@@ -105,7 +105,7 @@ let component ~(game : Game.t Value.t) =
                            [
                              Node.text
                                (match label with
-                               | "Day: " -> string_of_int value ^ "/45"
+                               | "Day: " -> string_of_int value ^ "/30"
                                | _ -> string_of_int value);
                            ];
                        ]);
