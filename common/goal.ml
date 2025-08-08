@@ -14,17 +14,12 @@ let all : t list = [
   };
    {
     id = "build-housing-5";
-    description = "Build 5 housing buildings";
-    reward = 200;
-  };
-  {
-    id = "reach-100-pop";
-    description = "Reach 100 Population";
+    description = "Build 5 houses";
     reward = 200;
   };
   {
     id = "build-business-3";
-    description = "Build 3 business buildings";
+    description = "Build 3 retail buildings";
     reward = 250;
   };
   {
@@ -41,6 +36,11 @@ let all : t list = [
     id = "build-university";
     description = "Build a University";
     reward = 600;
+  };
+    {
+    id = "reach-100-pop";
+    description = "Reach 100 Population";
+    reward = 200;
   };
   {
     id = "reach-500-pop";

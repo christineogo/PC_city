@@ -26,7 +26,7 @@ type t = {
 }
 [@@deriving sexp, equal]
 
-let base_happiness = 15
+let base_happiness = 20
 
 let new_game () =
   {
