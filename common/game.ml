@@ -653,7 +653,7 @@ let calculate_score game =
     else acc + (count * - (building_cost game key)/100 ))
 
 let increase_costs_by_score (g : t) : t =
-  let multiplier = g.score / 7 in
+  let multiplier = min 25 (g.score / 10) in
   {
     g with
     daily_cost = -50 - (5 * multiplier);

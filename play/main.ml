@@ -112,7 +112,6 @@ let component =
     and set_game = set_game
     and set_disaster_message = set_disaster_message
     and set_burned_positions = set_burned_positions
-    (* and _burned_positions = burned_positions *)
     and set_end_message = set_end_message in
 
     match game.game_stage with
