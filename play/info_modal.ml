@@ -55,7 +55,8 @@ let component ~show ~on_close =
                   "There are five mandatory buildings that you must place at \
                    the beginning of the game. The tutorial will instruct you \
                    to do so. They will be placed in order as shown in the city \
-                   planner side bar.";
+                   planner side bar. They will cost you to maintain them \
+                   everyday.";
               ];
             Node.p
               [

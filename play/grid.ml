@@ -58,7 +58,7 @@ let component ~game ~set_game ~selected_cell ~set_selected_cell
           match game.flood_queue with
           | Some flood_queue ->
               if List.mem flood_queue position ~equal:Position.equal then
-                "#00008B"
+                "#589ad8ff"
               else "#D3D3D3"
           | None -> "#D3D3D3")
     in

@@ -51,7 +51,7 @@ let component ~(game : Game.t Value.t)
       ( "Defund Mandatory Services",
         "Cost: " ^ string_of_int ultra_high_cost,
         "PC City allocate less money to mandatory services. This will cut the \
-         daily cost of maintaining these services in half." );
+         daily cost of maintaining these services and save you money!" );
     ]
   in
 
@@ -339,6 +339,9 @@ let component ~(game : Game.t Value.t)
                          Node.span
                            ~attrs:[ Attr.class_ "legend-label" ]
                            [ Node.text label ];
+                         Node.span
+                           ~attrs:[ Attr.class_ "tips" ]
+                           [ Node.text ("\t" ^ cost) ];
                          Node.span
                            ~attrs:
                              [

@@ -50,75 +50,67 @@ let new_game () =
     ultra_high_cost = -750;
     flood_queue = None;
     flooded_tiles = [];
-    current_goal =  List.hd Goal.all;
+    current_goal = List.hd Goal.all;
     completed_goals = [];
   }
 
-let goal_reward (goal: Goal.t) game = 
-  match goal.id with 
-  |"build-fire-station" -> {game with money = game.money + goal.reward}
-  |"reach-500-pop" -> {game with money = game.money + goal.reward}
-  | "build-housing-5" ->
-      {game with money = game.money + goal.reward}
-  | "reach-100-pop" ->
-      {game with money = game.money + goal.reward}
-  | "build-business-3" ->
-      {game with money = game.money + goal.reward}
-  | "earn-2000-money" ->
-     {game with money = game.money + goal.reward}
-  | "implement-any-policy" ->
-      {game with money = game.money + goal.reward}
-  | "build-university" ->
-      {game with money = game.money + goal.reward}
-  | "implement-3-policies" ->
-     {game with money = game.money + goal.reward}
-  | "reach-2000-pop" ->
-      {game with money = game.money + goal.reward}
-  | "smart-city" -> {game with money = game.money + goal.reward}
-  |_ -> game
+let goal_reward (goal : Goal.t) game =
+  match goal.id with
+  | "build-fire-station" -> { game with money = game.money + goal.reward }
+  | "reach-500-pop" -> { game with money = game.money + goal.reward }
+  | "build-housing-5" -> { game with money = game.money + goal.reward }
+  | "reach-100-pop" -> { game with money = game.money + goal.reward }
+  | "build-business-3" -> { game with money = game.money + goal.reward }
+  | "earn-2000-money" -> { game with money = game.money + goal.reward }
+  | "implement-any-policy" -> { game with money = game.money + goal.reward }
+  | "build-university" -> { game with money = game.money + goal.reward }
+  | "implement-3-policies" -> { game with money = game.money + goal.reward }
+  | "reach-2000-pop" -> { game with money = game.money + goal.reward }
+  | "smart-city" -> { game with money = game.money + goal.reward }
+  | _ -> game
 
-let goal_is_completed (goal: Goal.t) game = 
-  match goal.id with 
-  |"build-fire-station" -> Map.exists game.board ~f:(fun b -> Building.equal b Building.Fire)
-  |"reach-500-pop" -> game.population >= 500
+let goal_is_completed (goal : Goal.t) game =
+  match goal.id with
+  | "build-fire-station" ->
+      Map.exists game.board ~f:(fun b -> Building.equal b Building.Fire)
+  | "reach-500-pop" -> game.population >= 500
   | "build-housing-5" ->
       Map.count game.board ~f:(fun b -> Building.equal b Building.House) >= 5
-  | "reach-100-pop" ->
-      game.population >= 100
+  | "reach-100-pop" -> game.population >= 100
   | "build-business-3" ->
       Map.count game.board ~f:(fun b -> Building.equal b Retail) >= 3
-  | "earn-2000-money" ->
-      game.money >= 2000
-  | "implement-any-policy" ->
-      not (List.is_empty game.implemented_policies)
+  | "earn-2000-money" -> game.money >= 2000
+  | "implement-any-policy" -> not (List.is_empty game.implemented_policies)
   | "build-university" ->
       Map.exists game.board ~f:(fun b -> Building.equal b Building.University)
-  | "implement-3-policies" ->
-      List.length game.implemented_policies >= 3
-  | "reach-2000-pop" ->
-      game.population >= 2000
+  | "implement-3-policies" -> List.length game.implemented_policies >= 3
+  | "reach-2000-pop" -> game.population >= 2000
   | "smart-city" ->
       List.for_all
-        [ Building.University; Building.Hospital; Building.Police; Building.Fire ]
-        ~f:(fun required ->
+        [
+          Building.University; Building.Hospital; Building.Police; Building.Fire;
+        ] ~f:(fun required ->
           Map.exists game.board ~f:(fun b -> Building.equal b required))
-  |_ -> false
+  | _ -> false
 
-let collect_reward_function game = 
-  match game.current_goal with 
-  |None -> Ok game
-  |Some goal -> (if (goal_is_completed goal game) then 
-    let updated_game = goal_reward goal game in
-      let new_completed = goal.id :: game.completed_goals in
-      let next_goal =
-        List.find Goal.all ~f:(fun g -> not (List.mem new_completed g.id ~equal:String.equal))
-      in
-      Ok { updated_game with
-        completed_goals = new_completed;
-        current_goal = next_goal;
-      } else Error "You cannot claim a goal until you have completed it!")
-
-
+let collect_reward_function game =
+  match game.current_goal with
+  | None -> Ok game
+  | Some goal ->
+      if goal_is_completed goal game then
+        let updated_game = goal_reward goal game in
+        let new_completed = goal.id :: game.completed_goals in
+        let next_goal =
+          List.find Goal.all ~f:(fun g ->
+              not (List.mem new_completed g.id ~equal:String.equal))
+        in
+        Ok
+          {
+            updated_game with
+            completed_goals = new_completed;
+            current_goal = next_goal;
+          }
+      else Error "You cannot claim a goal until you have completed it!"
 
 let mandatory_buildings =
   [ Building.Electricity; Water; Police; Hospital; Fire ]
@@ -163,8 +155,9 @@ let get_population_change building =
 
 let print_game game = print_s [%message (game : t)]
 
-let empty_board = 
-  List.init 15 ~f:(fun row-> List.init 15 ~f:(fun col -> Position.create ~row ~col))
+let empty_board =
+  List.init 15 ~f:(fun row ->
+      List.init 15 ~f:(fun col -> Position.create ~row ~col))
   |> List.concat
 
 (* internal state updating *)
@@ -214,13 +207,15 @@ let place_function t ~position ~building =
       Ok (update_stats_from_building ~game:new_game ~building)
   else Error "Position is out of bounds"
 
-let place_building t ~position ~building = 
-  match t.flood_queue with 
-  |None -> place_function t ~position ~building
-  |Some flood_list -> (if List.mem flood_list position ~equal:Position.equal then Error "You cannot place here! The flood is covering this area" 
-  else place_function t ~position ~building)
+let place_building t ~position ~building =
+  match t.flood_queue with
+  | None -> place_function t ~position ~building
+  | Some flood_list ->
+      if List.mem flood_list position ~equal:Position.equal then
+        Error "You cannot place here! The flood is covering this area"
+      else place_function t ~position ~building
 
-  (* match t.flooded_tiles with 
+(* match t.flooded_tiles with 
   |Some flood_positions -> if List.mem flood_positions position ~equal:Position.equal then Error "You cannot place here! The flood is covering this area" 
   else place_function t ~position ~building
   |None -> place_function t ~position ~building *)
@@ -236,7 +231,7 @@ let tutorial_placement t ~position ~building =
 let remove_building t ~position =
   match Map.find t.board position with
   | None -> Error "there is no building to remove at this location"
-  | Some building ->
+  | Some building -> (
       let board = Map.remove t.board position in
       let building_counts =
         Map.update t.building_counts building ~f:(function
@@ -245,11 +240,27 @@ let remove_building t ~position =
           | Some _ -> 0)
       in
       match building with
-      |House -> Ok { t with board; building_counts; population = t.population - 4 }
-      |Apartment -> Ok { t with board; building_counts; population = t.population - 16 }
-      |Retail | Grocery -> Ok { t with board; building_counts; money_rate = t.money_rate + t.small_cost }
-      |School | University-> Ok { t with board; building_counts; money_rate = t.money_rate - t.small_cost}
-      |_ -> Ok { t with board; building_counts }
+      | House ->
+          Ok { t with board; building_counts; population = t.population - 4 }
+      | Apartment ->
+          Ok { t with board; building_counts; population = t.population - 16 }
+      | Retail | Grocery ->
+          Ok
+            {
+              t with
+              board;
+              building_counts;
+              money_rate = t.money_rate + t.small_cost;
+            }
+      | School | University ->
+          Ok
+            {
+              t with
+              board;
+              building_counts;
+              money_rate = t.money_rate - t.small_cost;
+            }
+      | _ -> Ok { t with board; building_counts })
 
 let end_tutorial (g : t) = { g with game_stage = Stage.Game_continues }
 let game_over (g : t) = { g with game_stage = Stage.Game_over }
@@ -257,12 +268,14 @@ let game_over (g : t) = { g with game_stage = Stage.Game_over }
 let update_stats game =
   print_s
     [%message
-      (Float.to_int (game.tax_rate *. log (1. +. Int.to_float game.population)); : int)];
+      (Float.to_int (game.tax_rate *. log (1. +. Int.to_float game.population))
+        : int)];
   {
     game with
     money =
       game.money + game.money_rate
-      + Float.to_int (game.tax_rate *. sqrt (log (1. +. Int.to_float game.population)));
+      + Float.to_int
+          (game.tax_rate *. sqrt (log (1. +. Int.to_float game.population)));
     happiness = Int.min 100 (game.happiness + game.happy_rate);
     population = game.population + game.population_rate;
   }
@@ -332,30 +345,32 @@ let enact_policy ~policy ~game =
       | Disable_Mandatory -> disable_effect new_game
       | Increase_Occupancy -> increase_occupancy_effect new_game)
 
-let burn_buildings positions game=
-    List.fold positions ~init:game ~f:(fun acc position -> 
+let burn_buildings positions game =
+  List.fold positions ~init:game ~f:(fun acc position ->
       match Map.find game.board position with
-      |Some building -> if List.mem mandatory_buildings building ~equal:Building.equal then acc else (Result.ok_or_failwith (remove_building acc ~position))
-      |None -> acc )
+      | Some building ->
+          if List.mem mandatory_buildings building ~equal:Building.equal then
+            acc
+          else Result.ok_or_failwith (remove_building acc ~position)
+      | None -> acc)
 
-let bfs ~position ~max_depth=
-let visited = Hash_set.create (module Position) in
-let to_visit = Queue.create () in
-Queue.enqueue to_visit (position,0);
-let rec traverse () =
-match Queue.dequeue to_visit with
-| None -> ()
-| Some (current_node, depth) ->
-if not (Hash_set.mem visited current_node) && depth <= max_depth
-then (
-Hash_set.add visited current_node;
-let adjacent_nodes = Position.get_neighbors current_node in
-List.iter adjacent_nodes ~f:(fun next_node ->
-Queue.enqueue to_visit (next_node, depth + 1)));
-traverse ()
-in
-traverse ();
-Hash_set.to_list visited
+let bfs ~position ~max_depth =
+  let visited = Hash_set.create (module Position) in
+  let to_visit = Queue.create () in
+  Queue.enqueue to_visit (position, 0);
+  let rec traverse () =
+    match Queue.dequeue to_visit with
+    | None -> ()
+    | Some (current_node, depth) ->
+        if (not (Hash_set.mem visited current_node)) && depth <= max_depth then (
+          Hash_set.add visited current_node;
+          let adjacent_nodes = Position.get_neighbors current_node in
+          List.iter adjacent_nodes ~f:(fun next_node ->
+              Queue.enqueue to_visit (next_node, depth + 1)));
+        traverse ()
+  in
+  traverse ();
+  Hash_set.to_list visited
 
 let fire_event game =
   print_endline "A fire has hit your town!";
@@ -365,25 +380,35 @@ let fire_event game =
   in
   match Map.is_empty burnable_map with
   | true ->
-      {
-        game with
-        happiness = max 0 (game.happiness - 10);
-        money = Float.to_int (Int.to_float game.money *. 0.75);
-        population = Float.to_int (Int.to_float game.population *. 0.75);
-      }, None
-| false ->
-  let max_depth = min 2 (game.score / 30 + 1) in
-    let burnable_locations = Map.to_alist burnable_map in
-    let random_location, _ = List.random_element_exn burnable_locations in
-    let burned_locations = List.filter (bfs  ~max_depth ~position:random_location) ~f:(fun location -> 
-      match Map.find game.board location with 
-      |None -> false
-      |Some building -> not (List.mem mandatory_buildings building ~equal:Building.equal)
-      (* not (List.mem mandatory_buildings (Map.find_exn game.board location) ~equal:Building.equal) *)
-      ) in
-    {(Result.ok_or_failwith (remove_building game ~position:random_location)) with
-    happiness = max 0 (game.happiness - 10); 
-    money = Float.to_int (Int.to_float game.money *. 0.75);}, Some burned_locations
+      ( {
+          game with
+          happiness = max 0 (game.happiness - 10);
+          money = Float.to_int (Int.to_float game.money *. 0.75);
+          population = Float.to_int (Int.to_float game.population *. 0.75);
+        },
+        None )
+  | false ->
+      let max_depth = min 2 ((game.score / 30) + 1) in
+      let burnable_locations = Map.to_alist burnable_map in
+      let random_location, _ = List.random_element_exn burnable_locations in
+      let burned_locations =
+        List.filter (bfs ~max_depth ~position:random_location)
+          ~f:(fun location ->
+            match Map.find game.board location with
+            | None -> false
+            | Some building ->
+                not
+                  (List.mem mandatory_buildings building ~equal:Building.equal)
+            (* not (List.mem mandatory_buildings (Map.find_exn game.board location) ~equal:Building.equal) *))
+      in
+      ( {
+          (Result.ok_or_failwith
+             (remove_building game ~position:random_location))
+          with
+          happiness = max 0 (game.happiness - 10);
+          money = Float.to_int (Int.to_float game.money *. 0.75);
+        },
+        Some burned_locations )
 
 (* let flood_start game = 
   let empty_squares = List.filter empty_board ~f:(fun position -> not (Map.mem game.board position)) in
@@ -397,16 +422,17 @@ let fire_event game =
 
 let _flood_event_start game =
   print_endline "Your town is flooding!!!";
-  let updated_game = {
-    game with
-    flood_queue = Some empty_board;
-    money = Float.to_int (Int.to_float game.money *. 0.75);
-    (* Apply flood effects to initial_flood squares *)
-    (* Example: update game.board, happiness, etc. here *)
-  } in
-  updated_game, None
+  let updated_game =
+    {
+      game with
+      flood_queue = Some empty_board;
+      money = Float.to_int (Int.to_float game.money *. 0.75);
+      (* Apply flood effects to initial_flood squares *)
+      (* Example: update game.board, happiness, etc. here *)
+    }
+  in
+  (updated_game, None)
 
-  
 (* game *)
 (* {
     game with
@@ -420,11 +446,12 @@ let protest_event game =
     "Your residents are protesting! Some people are not a fan of your clean \
      energy policy. They have decided to leave. Your population will \
      decrease. ";
-  {
-        game with
-        happiness = max 0 (game.happiness - 15);
-        population = Float.to_int (Int.to_float game.population *. 0.75);
-      }, None
+  ( {
+      game with
+      happiness = max 0 (game.happiness - 15);
+      population = Float.to_int (Int.to_float game.population *. 0.75);
+    },
+    None )
 (* {
     game with
     population = game.population - 10;
@@ -436,19 +463,19 @@ let robbery_event game =
     "Robberies have struck your town! Defunding mandatory services left PC \
      City citizens vunerable to such attacks. Your population will decrease. \
      They are leaving to find somewhere safer to live. ";
-  {
-        game with
-        happiness = max 0 (game.happiness - 10);
-        money = Float.to_int (Int.to_float game.money *. 0.4);
-      }, None
+  ( {
+      game with
+      happiness = max 0 (game.happiness - 10);
+      money = Float.to_int (Int.to_float game.money *. 0.4);
+    },
+    None )
 (* {
     game with
     money = Float.to_int (Int.to_float game.money *. 0.75);
     happiness = Int.max 0 game.happiness - 5;
   } *)
 
-
-  let get_robbery_risk game =
+let get_robbery_risk game =
   let robbery_risk = 0. in
   if
     List.exists game.implemented_policies ~f:(fun policy ->
@@ -516,18 +543,17 @@ let daily_events game =
   let fire_threshold = 100 - Float.to_int (fire_risk *. 10.) in
   let robbery_threshold = 100 - Float.to_int (robbery_risk *. 10.) in
   let protest_threshold = 100 - (protest_risk * 10) in
-  let flood_threshold = max 80 (100 - (game.score)/2) in
+  let flood_threshold = max 80 (100 - (game.score / 2)) in
 
   let fire_roll = Random.int 100 in
   let robbery_roll = Random.int 100 in
   let protest_roll = Random.int 100 in
   let flood_roll = Random.int 100 in
   if fire_roll > fire_threshold then Some Event.Fire
-  else if flood_roll > flood_threshold then Some Event.Flood 
+  else if flood_roll > flood_threshold then Some Event.Flood
   else if robbery_roll > robbery_threshold then Some Event.Robbery
   else if protest_roll > protest_threshold then Some Event.Protest
   else None
-
 
 let get_feedback_categories (g : t) : Public_feedback.feedback_category list =
   let get_count b = Map.find g.building_counts b |> Option.value ~default:0 in
@@ -589,18 +615,21 @@ let start_day game =
   | Some Event.Fire ->
       ( fire_event game,
         Some
-          "A fire has struck your town. Unfortunately, your population will \
-           decrease" )
+          "A fire has struck your town. Because you defunded mandatory \
+           services your fire station cannot save all your buildings. \
+           Unfortunately, you will lose some of your town." )
   | Some Event.Protest ->
       ( protest_event game,
         Some
           "Your residents are protesting! Some people are not a fan of your \
            clean energy policy. They have decided to leave. Your population \
            will decrease. " )
-  | Some Event.Flood -> (_flood_event_start game, Some
-          "Your town is flooding! \
-           You cannot place any buildings for the duration of this disaster ")
-  | None -> (game, None), None
+  | Some Event.Flood ->
+      ( _flood_event_start game,
+        Some
+          "Your town is flooding! You cannot place any buildings for the \
+           duration of this disaster " )
+  | None -> ((game, None), None)
 
 let calculate_happiness (game : t) : int =
   let get_count b =
@@ -650,7 +679,7 @@ let calculate_happiness (game : t) : int =
 let calculate_score game =
   Map.fold game.building_counts ~init:0 ~f:(fun ~key ~data:count acc ->
       if Building.equal key Building.Greenspace then acc
-    else acc + (count * - (building_cost game key)/100 ))
+      else acc + (count * -building_cost game key / 100))
 
 let increase_costs_by_score (g : t) : t =
   let multiplier = min 25 (g.score / 10) in
@@ -678,11 +707,12 @@ let tick game =
     }
   in
   let scaled_game = increase_costs_by_score new_day in
-  if new_day.happiness <= 0 then Error "Game over! Happiness has reached 0. It is your job to maintain your \
+  if new_day.happiness <= 0 then
+    Error
+      "Game over! Happiness has reached 0. It is your job to maintain your \
        population, money, and happiness of PC City. We hope the next mayor is \
        better..."
-  else 
-  if new_day.money < 0 then
+  else if new_day.money < 0 then
     Error
       "Game over! Money has reached 0. It is your job to maintain your \
        population, money, and happiness of PC City. We hope the next mayor is \
