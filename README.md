@@ -23,5 +23,5 @@ You can also make money by taxing your citizens. Be sure to monitor your tax rat
 #### Public Opinion: 
 Your public opinion tab is based entirely on your game state! You can monitor the public opinion to inform your decisions and find out what will make your people happy. 
 #### Unpredictable Behaviors: 
-There is a chance that natural disasters can occur and reduce your population. This can depend on the policies you have enacted. Clean energy might be very popular with your city, but could also be a policy that will cause protest. Defunding mandatory services could make your city vunerable to fires and pandemics. Be sure to hover over a policy and learn more about it before you enact them. 
+There is a chance that natural disasters can occur and reduce your population. This can depend on the policies you have enacted. Clean energy might be very popular with your city, but could also be a policy that will cause protest. Defunding mandatory services could make your city vunerable to fires and robberies. Be sure to hover over a policy and learn more about it before you enact them. 
 
